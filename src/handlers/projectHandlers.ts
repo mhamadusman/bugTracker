@@ -1,20 +1,14 @@
 import sequelize from "../config/database";
 import { Project } from "../models/project.model";
 import { UserProjects } from "../models/userProjects.model";
-import { User } from "../models/users.model";
-import { createProject, project } from "../types/types";
+import { createProject, project } from '../types/types';
 import { AssignedUserTypes } from "../types/types";
 import { Exception } from "../helpers/exception";
 import { errorMessages } from "../constants/errorMessages";
 import { errorCodes } from "../constants/errorCodes";
+import { userProjectsData } from "../types/types";
 
 
-
-interface userProjectsData {
-    projectId: number,
-    userId: number,
-    userType: AssignedUserTypes
-}
 
 export class ProjectHandler{
 
@@ -33,33 +27,14 @@ export class ProjectHandler{
             }, {transaction})
 
             //now save data into junction table
-            const userProjectData: userProjectsData[]  = []
-            const developerIds = data.developerIds.split(',').map(id => Number(id))
-            const sqaIds = data.sqaIds.split(',').map(id => Number(id))
-
-             developerIds.forEach((userId)=>{
-                userProjectData.push({
-                    projectId: newProject.projectId,
-                    userId,
-                    userType: AssignedUserTypes.DEVELOPER
-                })
-             })
-
-             sqaIds.forEach((userId)=>{
-                userProjectData.push({
-                    projectId: newProject.projectId,
-                    userId,
-                    userType: AssignedUserTypes.SQA
-                })
-             })
-
+            const userProjectData: userProjectsData[]  = this.createUserProjectData(newProject.projectId , data)
              //now save into db
 
              console.log('data which is going to save in userProjects..' , userProjectData)
 
              const userProject = await UserProjects.bulkCreate(userProjectData , {transaction})
              console.log('userproeject which is created is ' , userProject)
-              await transaction.commit();
+             await transaction.commit();
 
               return newProject
 
@@ -100,4 +75,47 @@ export class ProjectHandler{
     }
 
     //edit project 
+
+    static async editProject(projectId: number, data: createProject){
+
+        const transaction = await sequelize.transaction()
+        //update name in project table 
+
+        await Project.update({name: data.name},{where: {projectId} , transaction})
+
+        //remove old data from junction table
+        await UserProjects.destroy({where:{projectId} , transaction})
+
+         const userProjectData: userProjectsData[]  = this.createUserProjectData(projectId , data)
+        //now save into db
+
+        console.log('data which is going to save in userProjects..' , userProjectData)
+
+        const userProject = await UserProjects.bulkCreate(userProjectData , {transaction})
+        console.log('userproeject which is created is ' , userProject)
+        await transaction.commit();
+    }
+    static createUserProjectData(projectId: number , data: createProject): userProjectsData[] {
+
+        const userProjectData: userProjectsData[]  = []
+        const developerIds = data.developerIds.split(',').map(id => Number(id))
+            const sqaIds = data.sqaIds.split(',').map(id => Number(id))
+
+             developerIds.forEach((userId)=>{
+                userProjectData.push({
+                    projectId: projectId,
+                    userId,
+                    userType: AssignedUserTypes.DEVELOPER
+                })
+             })
+
+             sqaIds.forEach((userId)=>{
+                userProjectData.push({
+                    projectId: projectId,
+                    userId,
+                    userType: AssignedUserTypes.SQA
+                })
+             })
+        return userProjectData
+    }
 }

@@ -32,8 +32,8 @@ export class Authentication{
      const authorization = req.headers.authorization
     if(!authorization)
     {
-       return res.status(401).json({
-            message: 'un-authurized, please login again to access the resource'
+       return res.status(errorCodes.UNAUTHORIZED).json({
+            message: UserErrorMessages.ACCESS_DENIED
         })
         
     }
@@ -59,8 +59,8 @@ export class Authentication{
 
     }catch(error){
         console.log('inside catch of authentication function')
-        res.status(401).json({
-            message: 'un-authorized'
+        res.status(errorCodes.UNAUTHORIZED).json({
+            message: UserErrorMessages.ACCESS_DENIED
         })
     }
     }
@@ -86,23 +86,5 @@ export class Authentication{
             next(error)
         }
     }
-
-    // static async authorizeManagerToDeleteProject(req: Request<{projectId: string}> , res:Response , next: NextFunction){
-
-    //     try{
-
-    //         const managerId =  await this.getUserIdFromJWTpayLoad(req)
-
-    //     }catch(error){
-
-    //     }
-
-    // }
-    // static async getUserIdFromJWTpayLoad(req: Request ,  res: Response , next: NextFunction){
-
-           
-    //  const authorization = req.headers.authorization
-    // }
-
 
 }

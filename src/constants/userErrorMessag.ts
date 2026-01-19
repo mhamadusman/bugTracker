@@ -13,7 +13,7 @@ export const UserErrorMessages = Object.freeze({
   TOKEN_EXPIRED: 'Session expired, please login again',
 
   // Authorization errors
-  ACCESS_DENIED: 'You do not have permission to perform this action',
+  ACCESS_DENIED: 'Access denied',
 
   // Resource errors
   USER_NOT_FOUND: 'User not found',

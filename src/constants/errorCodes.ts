@@ -4,6 +4,8 @@ export enum errorCodes {
   // Use when: required field missing, invalid format, wrong payload
   BAD_REQUEST = 400,
 
+  CREATED =  201,
+
   // 401 — User is NOT authenticated
   // Use when: token missing, token expired, invalid credentials
   UNAUTHORIZED = 401,
