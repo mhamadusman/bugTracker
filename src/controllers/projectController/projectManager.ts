@@ -1,16 +1,14 @@
-import { createProject, projectCreationResponse, project } from '../../types/types';
-
+import { createProject, project } from '../../types/types';
 import { ProjectUils } from "../../utilities/projectUtils";
 import { ProjectHandler } from "../../handlers/projectHandlers";
-import { userHandler } from "../../handlers/userHandler";
-import { User } from "../../models/users.model";
+
 
 
 
 export class projectManager{
     static async createProject(data: createProject): Promise<project>{
       //validate projct data 
-      await ProjectUils.validateCreateProject(data)
+      await ProjectUils.validateProjectData(data)
       
 
       //create project
@@ -39,7 +37,7 @@ export class projectManager{
 
     static async validateManagerToDeleteProject(userId: string , projectId: string){
 
-        await ProjectUils.validateManagerToDeleteProject(userId , projectId)
+        await ProjectUils.validateManagerAndProject(userId , projectId)
 
     }
 
@@ -47,11 +45,20 @@ export class projectManager{
 
     static async deleteProjectById(projectId: string , managerId: string){
        // await ProjectUils.validateProjectId(projectId)
-        await ProjectUils.validateManagerToDeleteProject(managerId , projectId)
+        await ProjectUils.validateManagerAndProject(managerId , projectId)
         await ProjectHandler.deleteProjectUsingId(Number(projectId))
 
     }
 
     
     //edit project using id 
+
+    static async editProject(projectId: number , projectData: createProject , managerId: number){
+        //validate project id 
+        await ProjectUils.validateManagerAndProject(String(managerId) , String(projectId))
+        await  ProjectUils.validateProjectData(projectData)
+        await ProjectHandler.editProject(projectId , projectData)
+
+
+    }
 }

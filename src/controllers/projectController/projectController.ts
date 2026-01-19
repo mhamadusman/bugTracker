@@ -4,6 +4,9 @@ import { createProject, project, deleteProjectResponse } from '../../types/types
 
 import { projectManager } from './projectManager';
 import { User } from '../../models/users.model';
+import { errorCodes } from '../../constants/errorCodes';
+import { successCodes } from '../../constants/sucessCodes';
+import { successMessages } from '../../constants/sucessMessages';
 
 declare global {
   namespace Express {
@@ -23,7 +26,7 @@ export class ProjectController {
         try{
 
           const project: project = await projectManager.createProject(req.body)
-          return res.status(201).json({
+          return res.status(errorCodes.CREATED).json({
             sucess: true,
             message: 'project created',
             managerId: project.managerId,
@@ -78,10 +81,28 @@ export class ProjectController {
       }catch(error){
             next(error)
       }
+    }
 
+    //edit project
 
+    static async editProject(req: Request<{projectId: string}, {}, createProject>, res: Response, next: NextFunction){
+        //validate project id
+        //validat data 
+        //validate sqa and developer then update 
+        const projectId: number  = Number(req.params.projectId)
+        try{
 
+          await projectManager.editProject(projectId , req.body , Number(req.user?.id))
+          return res.status(successCodes.OK).json({
+            status: true,
+            message: successMessages.MESSAGES.UPDATED
+          })
 
+        }catch(error){
+
+          next(error)
+
+        }
     }
 
 

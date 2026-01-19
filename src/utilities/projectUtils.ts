@@ -6,17 +6,15 @@ import { Exception } from "../helpers/exception";
 import { createProject } from "../types/types";
 import { User } from "../models/users.model";
 import { Op } from "sequelize";
-import { errorMessages } from "../constants/errorMessages";
-import { Project } from "../models/project.model";
 import { ProjectHandler } from "../handlers/projectHandlers";
-import { error } from "node:console";
+
 
 
 
 export class ProjectUils{
     // validate project data
-    static async  validateCreateProject(data: createProject) {
-        const {name , sqaIds , developerIds ,  } = data
+    static async  validateProjectData(data: createProject) {
+        const {name , sqaIds , developerIds } = data
         if(!name?.trim()){
             console.log('provide project name')
             throw new Exception(UserErrorMessages.INcOMPELETE_DATA_TO_CREATE_PROEJECT, errorCodes.BAD_REQUEST);
@@ -116,22 +114,13 @@ export class ProjectUils{
         return manager
     }
 
-    // validate proeject id
-
-    // static async validateProjectId(projectId: number){
-    //     const project =  await Project.findByPk(projectId)
-    //     if(!project){
-    //         throw new Exception(UserErrorMessages.INVALID_ID , errorCodes.BAD_REQUEST)
-    //     }
-    // }
-
-    static async validateManagerToDeleteProject(userId: string  , projectId: string){
+    static async validateManagerAndProject(userId: string  , projectId: string){
 
         // get proeject using id
         const project = await ProjectHandler.getProjectUsingId(Number(projectId))
         if(!project){
             throw new Exception(UserErrorMessages.INVALID_ID , errorCodes.BAD_REQUEST)
-        }
+        }   
 
         if(project.managerId !== Number(userId)){
             throw new Exception (UserErrorMessages.ACCESS_DENIED , errorCodes.UNAUTHORIZED)

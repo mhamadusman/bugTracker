@@ -53,10 +53,11 @@ export enum AssignedUserTypes{
 export interface createProject {
 
     name: string,
-    managerId: number,
+    managerId?: number,
     sqaIds: string,
     developerIds: string
 }
+
 export interface projectCreationResponse{
 
 
@@ -71,4 +72,11 @@ export interface deleteProjectResponse {
     sucess: boolean,
     message: string,
     error?: Error
+}
+
+//type for junction table 
+export interface userProjectsData {
+    projectId: number,
+    userId: number,
+    userType: AssignedUserTypes
 }
