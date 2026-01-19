@@ -1,0 +1,11 @@
+import { userHandler } from '../../handlers/userHandler';
+
+import { User } from '../../models/users.model';
+
+export class UserManager{
+
+    static async getAllUsers(): Promise<User[] | null>{
+            const users: (User[] | null )  = await userHandler.getAllUsers()
+            return users   
+    }   
+}
