@@ -4,7 +4,8 @@ import { ProjectController } from "../controllers/projectController/projectContr
 export const router  = Router()
 
 router.post('/create' , Authentication.authenticate, Authentication.autorizeManagerRole , ProjectController.createProjct)
-router.get('/:managerId' , Authentication.authenticate, Authentication.autorizeManagerRole,  ProjectController.getManagerProjects)
+router.get('/:userId' , Authentication.authenticate,  ProjectController.getProjects)
+
 router.delete('/:projectId', Authentication.authenticate, Authentication.autorizeManagerRole
                , ProjectController.deleteProjectById)
 router.patch('/:projectId' , Authentication.authenticate , Authentication.autorizeManagerRole,

@@ -1,5 +1,5 @@
 import sequelize from "../config/database";
-import { Project } from "../models/project.model";
+import { Project } from '../models/project.model';
 import { UserProjects } from "../models/userProjects.model";
 import { createProject, project } from '../types/types';
 import { AssignedUserTypes } from "../types/types";
@@ -7,6 +7,7 @@ import { Exception } from "../helpers/exception";
 import { errorMessages } from "../constants/errorMessages";
 import { errorCodes } from "../constants/errorCodes";
 import { userProjectsData } from "../types/types";
+import { User } from "../models/users.model";
 
 
 
@@ -49,9 +50,9 @@ export class ProjectHandler{
 
     //get all projects project
    
-    static async getAllProjects(managerId: number): Promise<Project[] | null>{
+    static async getManagerProjects(managerId: number): Promise<Project[]>{
 
-        const projects = await Project.findAll({
+        const projects: Project[] = await Project.findAll({
             where: { managerId }
         });
 
@@ -59,8 +60,28 @@ export class ProjectHandler{
         
     } 
 
-    //get project using id 
+     static async getSQAprojects(userId: number): Promise<Project[]>{
 
+        const user  = await User.findByPk(userId,{
+            include:[{
+                model: Project,
+                as: "assignedProjects"
+            }]
+        })
+
+        return user?.assignedProjects ?? []
+    } 
+     static async getDeveloperProjects(userId: number): Promise<Project[]>{
+        const user  = await User.findByPk(userId,{
+            include:[{
+                model: Project,
+                as: "assignedProjects"
+            }]
+        })
+
+        return user?.assignedProjects ?? []
+    } 
+    //get project using id 
     static async getProjectUsingId(projectId: number): Promise<Project | null>{
             const project  = await Project.findByPk(projectId)
             return project

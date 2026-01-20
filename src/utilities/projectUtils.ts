@@ -7,6 +7,7 @@ import { createProject } from "../types/types";
 import { User } from "../models/users.model";
 import { Op } from "sequelize";
 import { ProjectHandler } from "../handlers/projectHandlers";
+import { Project } from "../models/project.model";
 
 
 
@@ -32,8 +33,6 @@ export class ProjectUils{
         const developerIdsInNumber: number[] = developerIds.split(',').map(id => Number(id.trim()));
 
         await this.validateDeveloperids(developerIdsInNumber)
-
-
 
     }
 
@@ -102,8 +101,8 @@ export class ProjectUils{
 
     }
 
-    //get manager by id
-    static async getManagerUsingId(id: number): Promise<User>{
+    //validate user by id
+    static async validateUser(id: number){
       console.log(`inside get project utils to get manger using id typeof id is ${typeof id}`)
 
         const manager  = await userHandler.findById(id)
@@ -111,7 +110,7 @@ export class ProjectUils{
         if(!manager){
             throw new Exception(UserErrorMessages.USER_NOT_FOUND , errorCodes.BAD_REQUEST)
         }
-        return manager
+        return 
     }
 
     static async validateManagerAndProject(userId: string  , projectId: string){
@@ -125,5 +124,14 @@ export class ProjectUils{
         if(project.managerId !== Number(userId)){
             throw new Exception (UserErrorMessages.ACCESS_DENIED , errorCodes.UNAUTHORIZED)
         }
+    }
+
+    static async validateProjectId(projectId: number): Promise<void>{
+        const project = await Project.findByPk(projectId)
+        if(!project){
+            throw new Exception(UserErrorMessages.INVALID_ID , errorCodes.BAD_REQUEST)
+        }
+
+
     }
 }

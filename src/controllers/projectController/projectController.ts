@@ -7,6 +7,7 @@ import { User } from '../../models/users.model';
 import { errorCodes } from '../../constants/errorCodes';
 import { successCodes } from '../../constants/sucessCodes';
 import { successMessages } from '../../constants/sucessMessages';
+import { Project } from '../../models/project.model';
 
 declare global {
   namespace Express {
@@ -39,21 +40,16 @@ export class ProjectController {
             next(error)
         }
     }
-
-
-    //get specifi proejets using manaegr id
-    static async getManagerProjects(req: Request<{managerId: string}>,  res: Response , next: NextFunction){ 
+    //get specifi proejets using user  id based on role manger sqa and developer 
+    static async getProjects(req: Request<{userId: string}>,  res: Response , next: NextFunction){ 
         try{
-
-            console.log('inside project controller to get all projects' , req.params.managerId)
-
-            await projectManager.getManagerUsingId(Number(req.params.managerId))
-            const managedProjects = await projectManager.getManagedProjects(Number(req.params.managerId))
-            return res.status(200).json({
+            console.log('inside project controller to get all projects' , req.params.userId)
+            const projects: Project[] = await projectManager.getProjects(Number(req.params.userId) , String(req.user?.userType))
+            return res.status(successCodes.OK).json({
                  sucess: true,
-                 count: managedProjects?.length,
-                 message: `total number of porjects found ${managedProjects?.length}`,
-                 projects: managedProjects
+                 count: projects?.length,
+                 message: `total number of porjects found ${projects?.length}`,
+                 projects: projects
             })
 
         }catch(error){

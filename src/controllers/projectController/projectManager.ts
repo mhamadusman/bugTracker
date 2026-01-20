@@ -1,6 +1,12 @@
-import { createProject, project } from '../../types/types';
+import { UserTypes, createProject, project} from '../../types/types';
 import { ProjectUils } from "../../utilities/projectUtils";
 import { ProjectHandler } from "../../handlers/projectHandlers";
+import { User } from '../../models/users.model';
+import { Project } from '../../models/project.model';
+import { Exception } from '../../helpers/exception';
+import { errorMessages } from '../../constants/errorMessages';
+import { UserErrorMessages } from '../../constants/userErrorMessag';
+import { errorCodes } from '../../constants/errorCodes';
 
 
 
@@ -17,24 +23,31 @@ export class projectManager{
 
     }
 
-    // get managr using id
+    //
+    static async getProjects(userId: number , userRole: string): Promise<Project[]>{
 
-    static async getManagerUsingId(id: number){
-        console.log(`inside get managerUsingId in projectManager and typeof id is ${typeof id}`)
-        await ProjectUils.getManagerUsingId(id)
+        await this.validateUser(userId)
+        if(userRole === "manager"){
+           const projects: Project[]= await ProjectHandler.getManagerProjects(userId)
+           return projects
+        }else if(userRole === "sqa"){
+            const projects: Project[] = await ProjectHandler.getSQAprojects(userId)
+            return projects
+        }
+        else if(userRole === "developer"){
+            const projects: Project[] = await ProjectHandler.getSQAprojects(userId)
+            return projects
+        }else{
+            throw new Exception(UserErrorMessages.INVALID_USER_TYPE , errorCodes.BAD_REQUEST)
+        }
+        
+    }
+
+    static async validateUser(id: number){
+        console.log(`inside validate user function in projectManager and typeof id is ${typeof id}`)
+        await ProjectUils.validateUser(id)
         return 
     }
-
-    //get manager's projects 
-
-    static async getManagedProjects(managerId: number){
-        console.log('manager id to get managed projects' , managerId)
-        const managerProjects = await ProjectHandler.getAllProjects(managerId)
-        return managerProjects
-    }
-
-
-
     static async validateManagerToDeleteProject(userId: string , projectId: string){
 
         await ProjectUils.validateManagerAndProject(userId , projectId)
