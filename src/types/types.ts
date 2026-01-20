@@ -122,6 +122,7 @@ export interface createBug{
     status: status,
     projectId: number,
     developerId: number,
+    screenshot?: string
 
 }
 

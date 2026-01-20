@@ -7,14 +7,15 @@ import { ProjectUils } from "../../utilities/projectUtils";
 
 export class BugManagr{
 
-    static async createBug(data: createBug , userId: number): Promise<void>{
+    static async createBug(data: createBug , userId: number , imgurl: string): Promise<void>{
+        console.log('inside bugMnager create bug function' , data)
         await BugUtil.validateBugRequest(data)
         //check title scop
         //validat project 
         await ProjectUils.validateProjectId(data.projectId) 
         
         await BugUtil.validateBugTitle(data.title , data.projectId)
-        await bugHandler.createBug(data , userId)
+        await bugHandler.createBug(data , userId  ,imgurl)
         return 
     }
 
@@ -34,7 +35,7 @@ export class BugManagr{
         console.log(typeof  bugStatus)
         //validat bug is connect to actual developer 
         await BugUtil.authorizeDeveloper(bugId , userId)
-        
+
         await BugUtil.validateBugStatus(bugStatus)
         
        

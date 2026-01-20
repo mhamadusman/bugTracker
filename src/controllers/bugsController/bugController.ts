@@ -11,16 +11,25 @@ export class BugController{
 
     static async  createBug(req: Request<{},{},createBug> , res: Response , next: NextFunction){
         try{
-            await BugManagr.createBug(req.body , Number(req.user?.id))
+            let imgurl = null 
+            if (req.file) {
+               imgurl = `/uploads/bugs/${req.file.filename}`;
+            }
+            console.log('img path' , imgurl)
+            console.log('data is ' , req.body)
+            await BugManagr.createBug(req.body , Number(req.user?.id) , String(imgurl))
+            
             return res.status(successCodes.CREATED).json({
                 sucess: true,
                 message: successMessages.MESSAGES.CREATED
             })
 
         }catch(error){
+            console.log('inside catch of createbug function in bugController')
             next(error)
         }
     }
+
 
     static async getAllBugs(req: Request<{projectId: string}> , res: Response<getBugs> , next: NextFunction){
         try{

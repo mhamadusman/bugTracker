@@ -30,7 +30,7 @@ app.use('/projects' ,  projectRoutes)
 //bugs routes 
 app.use('/bugs', bugRoutes)
 
-
+app.use('/uploads', express.static('uploads'))
 app.use((req: Request, res: Response, next: NextFunction) => {
     throw new Exception(errorMessages.MESSAGES.PAGE_NOT_FOUND , errorCodes.DOCUMENT_NOT_FOUND)
 });

@@ -3,7 +3,7 @@ import { createBug } from '../types/types';
 
 export class bugHandler{
 
-    static async createBug(data: createBug , userId: number): Promise<Bug>{
+    static async createBug(data: createBug , userId: number , imgurl: string): Promise<Bug>{
       
         const bug = await Bug.create({
         title: data.title,
@@ -13,9 +13,10 @@ export class bugHandler{
         status: data.status,
         projectId: data.projectId,
         developerId: data.developerId,
-        sqaId: userId
+        sqaId: userId,
+        screenshot: imgurl
         });
-
+        console.log('bug created with details'  , bug)
         return bug
     }
 
