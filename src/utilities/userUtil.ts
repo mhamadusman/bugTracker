@@ -7,6 +7,7 @@ import { UserErrorMessages } from "../constants/userErrorMessag";
 import { errorMessages } from "../constants/errorMessages";
 import { createUser } from "../types/types";
 import { User } from "../models/users.model";
+import { userHandler } from "../handlers/userHandler";
 
 export class UserUtil {
 
@@ -21,4 +22,5 @@ export class UserUtil {
             throw new Exception(UserErrorMessages.USER_ALREADY_EXISTS , errorCodes.CONFLICT_WITH_CURRENT_STATE)
         }
     }
+    
 }

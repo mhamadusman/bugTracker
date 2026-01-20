@@ -42,7 +42,7 @@ export class Authentication{
     console.log(token)
     try{
         console.log('inside try of authentication ')
-        const decode = jwt.verify(token! , config.jwt_key) as myJwtType
+        const decode = jwt.verify(token , config.jwt_key) as myJwtType
         console.log(`here is decoded value of jwt ${decode}`)
 
         console.log(`here is decode value ${decode.userId}`)
@@ -86,5 +86,45 @@ export class Authentication{
             next(error)
         }
     }
+
+    //validat sqa role for creating bug
+
+    static async autorizeSQArole(req: Request , res: Response , next: NextFunction){
+        try{
+            console.log(req.body)
+            console.log('this is the user details which i attach to req , ' , req.user)
+
+         //   const user  = await userHandler.findById(Number(req.body.managerId))
+            if(req.user?.userType === 'sqa'){
+                console.log(`this is the user : ${req.user?.name} : ${req.user?.userType}`)
+                console.log('role is verified for sqa role ')
+                return next()
+            }else{
+                console.log('user not verified...')
+            }
+           throw new Exception(UserErrorMessages.ACCESS_DENIED, errorCodes.UNAUTHORIZED)
+        }catch(error){
+            next(error)
+        }
+    } 
+
+    static async autorizeDeveloperRole(req: Request , res: Response , next: NextFunction){
+        try{
+            console.log(req.body)
+            console.log('this is the user details which i attach to req , ' , req.user)
+
+         //   const user  = await userHandler.findById(Number(req.body.managerId))
+            if(req.user?.userType === 'developer'){
+                console.log(`this is the user : ${req.user?.name} : ${req.user?.userType}`)
+                console.log('role is verified for developer role ')
+                return next()
+            }else{
+                console.log('user not verified...')
+            }
+           throw new Exception(UserErrorMessages.ACCESS_DENIED, errorCodes.UNAUTHORIZED)
+        }catch(error){
+            next(error)
+        }
+    } 
 
 }

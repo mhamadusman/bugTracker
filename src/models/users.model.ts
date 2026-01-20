@@ -6,6 +6,7 @@ import {
   CreationOptional,
   DataTypes,
 } from "sequelize";
+import { Project } from "./project.model";
 
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>
 > {
@@ -14,7 +15,9 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
   declare email: string;
   declare password: string;
   declare userType: string;
-  declare phoneNumber: number
+  declare phoneNumber: number;
+  
+  declare assignedProjects?: Project[];
 }
 
 User.init(

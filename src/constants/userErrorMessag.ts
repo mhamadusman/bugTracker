@@ -39,6 +39,12 @@ export const UserErrorMessages = Object.freeze({
   INVALID_ID: 'Invalid Id please provide valid id to complete the request',
 
   INcOMPELETE_DATA_TO_CREATE_PROEJECT: 'Please enter Valid data proper SQA or DEVELOPER IDS or Project name   to create project',
+
+  //bug errors
+
+  DUPLICATE_BUG_WITH_PROJECT_SCOPE: 'Bug title must be unique within project scope',
+
+  INVALID_DATA: 'Invalid data check you inputs IDs, request body etc...'
   
 
   //
