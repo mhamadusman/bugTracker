@@ -5,7 +5,7 @@ export const UserErrorMessages = Object.freeze({
   PASSWORD_REQUIRED: 'Password is required',
   PASSWORD_TOO_SHORT: 'Password must be at least 8 characters',
   INVALID_EMAIL_FORMAT: 'Invalid email format',
-  USER_DATA_INCOMPLETE:  'Please provide all requiered details to create user',
+  USER_DATA_INCOMPLETE:  'Please provide all requiered details and user type to create user',
 
   // Authentication errors
   INVALID_CREDENTIALS: 'Invalid email or password',
@@ -29,6 +29,7 @@ export const UserErrorMessages = Object.freeze({
   //invalid user type
 
   INVALID_USER_TYPE: 'Please enter valid user type',
+  INVALID_EMAIL_FOMATE: 'Please provide valid email formate',
 
   //incomplete project data 
 
@@ -38,15 +39,15 @@ export const UserErrorMessages = Object.freeze({
 
   INVALID_ID: 'Invalid Id please provide valid id to complete the request',
 
-  INcOMPELETE_DATA_TO_CREATE_PROEJECT: 'Please enter Valid data proper SQA or DEVELOPER IDS or Project name   to create project',
+  INcOMPELETE_DATA_TO_CREATE_PROEJECT: 'Please enter valid data proper SQA or developer IDS, Project name to create project',
 
   //bug errors
 
   DUPLICATE_BUG_WITH_PROJECT_SCOPE: 'Bug title must be unique within project scope',
 
-  INVALID_DATA: 'Invalid data check you inputs IDs, request body etc...'
-  
+  INVALID_DATA: 'Invalid data check you inputs IDs, request body etc...',
 
-  //
-  
+  //un-uthorized 
+  ACCESS_TOKEN_EXPIRED: 'Access token expired',
+  REFRESH_TOKEN_EXPIRED: 'Refresh token expired',
 });

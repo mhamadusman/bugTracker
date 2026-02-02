@@ -1,58 +1,100 @@
-import { errorCodes } from "../constants/errorCodes";
-import { errorMessages } from "../constants/errorMessages";
-import { UserErrorMessages } from "../constants/userErrorMessag";
-import { Exception } from "../helpers/exception";
-import { User } from "../models/users.model";
+import { errorCodes } from '../constants/errorCodes';
+import { UserErrorMessages } from '../constants/userErrorMessag';
+import { Exception } from '../helpers/exception';
+import { User } from '../models/users.model';
+import { Op } from 'sequelize';
 
-import { createUser } from "../types/types";
+import { createUser, updateUser } from '../types/types';
 
 export class userHandler {
+  static async createUser(data: createUser, hashedPassword: string): Promise<User> {
+    const newUser = await User.create({
+      name: data.name,
+      email: data.email,
+      password: hashedPassword,
+      userType: data.userType,
+      phoneNumber: data.phoneNumber,
+    });
+    return newUser;
+  }
 
+  static async findUserByEmail(email: string): Promise<User | null> {
+    const user = await User.findOne({
+      where: { email: email },
+    });
 
-     //create user... must send hashed password here 
+    return user;
+  }
 
-    static async createUser(data: createUser , hashedPassword: string): Promise<User>{
-        const newUser = await User.create({
-            name: data.name,
-            email: data.email,
-            password: hashedPassword,
-            userType: data.userType,
-            phoneNumber: data.phoneNumber
-        })  
-     return newUser
+  static async getAllUsers(): Promise<User[]> {
+    const users: User[] = await User.findAll();
+    return users;
+  }
+
+  static async getUserByRole(role: string): Promise<User | null> {
+    const user: User | null = await User.findOne({
+      where: { userType: role },
+    });
+    return user;
+  }
+
+  static async findById(id: number): Promise<User | null> {
+    const user = await User.findByPk(id);
+    return user;
+  }
+
+  static async getAllDevelopers(ids: number[]): Promise<User[] | []> {
+    const users = await User.findAll({
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+    });
+    return users;
+  }
+
+  static async updateUser(data: updateUser, password: string, image: string | null, id: number) {
+    const updateData: any = {
+      name: data.name,
+      phoneNumber: data.phoneNumber,
+      email: data.email,
+    };
+
+    if (password.length > 0) {
+      updateData.password = password;
     }
-
-
-    static async findUserByEmail(email: string): Promise<User | null> {
-        const user: (User | null) = await User.findOne({
-            where: {email: email}
-        })
-
-       return user
+    if (image) {
+      updateData.image = image;
     }
+    await User.update(updateData, { where: { id } });
+  }
 
-    //find all 
-    static async getAllUsers(): Promise<User[]> {
-        const users: (User[] | null ) = await User.findAll()
-        return users
-    }
+  static async udpatRefreshToken(refreshToken: string, email: string) {
+    await User.update({ refreshToken: refreshToken }, { where: { email: email } });
+  }
 
-    //find by role
-    static async getUserByRole(role: string): Promise<User | null> {
-        const user: (User | null) = await User.findOne({
-            where : {userType: role}
-        })
-        return user
-    }
+  static async validateSQAids(ids: number[]): Promise<User[]> {
+    const users = await User.findAll({
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+        userType: 'sqa',
+      },
+    });
+    return users;
+  }
 
-    //find by id 
-    static async findById(id: number): Promise<User>{
-        console.log(`in user handler to get user by its id and type of id is  ${typeof id} and value is ${id}`)
-        const user = await User.findByPk(id)
-        if(!user){
-            throw new Exception(UserErrorMessages.USER_NOT_FOUND , errorCodes.BAD_REQUEST)
-        }
-        return user
-    }
-
+  static async validateDeveloperIds(ids: number[]): Promise<User[]> {
+    const users = await User.findAll({
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+        userType: 'developer',
+      },
+    });
+    return users;
+  }
 }

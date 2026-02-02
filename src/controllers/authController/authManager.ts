@@ -1,42 +1,33 @@
+import { User } from '../../models/users.model';
+import { createUser, loginResponse, signUpResponse } from '../../types/types';
+import { AuthUtils } from '../../utilities/authUtils';
+import { userHandler } from '../../handlers/userHandler';
+import { token } from '../../helpers/token';
 
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import config from '../../config/custome_variables.json'
-import { User } from "../../models/users.model";
-import { createUser , signUpResponse} from "../../types/types";
-import { AuthUtils } from "../../utilities/authUtils";
-import { userHandler } from "../../handlers/userHandler";
-
-export class AuthManager{
-
+export class AuthManager {
     static async signUp(data: createUser): Promise<User> {
-
-
-        //validate data
-        AuthUtils.validateUserDataForSignUp(data)
-        console.log('data is validated...')
-
-        //validate email
-        await AuthUtils.checkEmail(data.email)
-        
-        AuthUtils.validatePasswordLength(data.password)
-        console.log('password validated....')
-
-        const hashedPassword  = await AuthUtils.createHashedPassword(data.password)
-        console.log('password hashed')
-        //craete user
-        const newUser  = await userHandler.createUser(data , hashedPassword)
-
-        console.log('user created........')
-        console.log(newUser)
-        return newUser
-
+        await AuthUtils.validateUserDataForSignUp(data);
+        const hashedPassword = await AuthUtils.createHashedPassword(data.password);
+        const newUser = await userHandler.createUser(data, hashedPassword);
+        return newUser;
     }
 
-    static async login(email: string , password: string): Promise<string>{
-        const token = await  AuthUtils.validateLoginReqeust(email , password)
-        return token
-
-
+    static async login(email: string, password: string): Promise<loginResponse> {
+        const data = await AuthUtils.validateLoginReqeust(email, password);
+        await userHandler.udpatRefreshToken(data.refreshToken, email);
+        return data;
     }
+
+    static async getRefreshToken(id: number, email: string, userType: string): Promise<loginResponse> {
+        const userToken = await token.getLoginToken(id);
+        const refreshToken = await token.getRefreshToken(id);
+        await userHandler.udpatRefreshToken(refreshToken, email);
+        return {
+        token: userToken,
+        refreshToken: refreshToken,
+        userType: userType,
+        };
+    }
+
+
 }

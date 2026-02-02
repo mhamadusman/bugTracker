@@ -1,6 +1,7 @@
 import { BugType } from "../models/bug.model"
 import { status } from "../models/bug.model"
 import { Bug } from "../models/bug.model"
+import { Project } from "../models/project.model"
 
 
 export enum UserTypes {
@@ -8,7 +9,7 @@ export enum UserTypes {
   SQA = 'sqa',
   MANAGER = 'manager',
 }
-//interface for assigned users 
+
 
 
 
@@ -18,8 +19,16 @@ export interface createUser {
     email: string,
     password: string,
     userType: UserTypes
-    phoneNumber: number,
+    phoneNumber: string,
 
+}
+
+export interface updateUser{
+    name: string,
+    email: string,
+    password?: string,
+    phoneNumber: string,
+    image?: string
 }
 
 
@@ -30,10 +39,17 @@ export interface signUpResponse{
     message?: string,
     sucess?: boolean,
     user_id?: number,
-    email?: string 
+    email?: string,
+    toke?: string
     
 }
 
+export interface loginResponse{
+      message?: string,
+      token?: string, 
+      userType?: string,
+      refreshToken: string
+}
 
 //projects
 export interface projects{
@@ -48,7 +64,20 @@ export interface project {
     managerId: number,
     message?: string,
     projectId?: number,
-    sucess?: boolean
+    sucess?: boolean,
+    description?: string 
+    image?: string | null
+}
+
+export interface IProjects{
+    projects: Project[],
+    totalProjects: number,
+    pages: number
+}
+export interface IBugs{
+    bugs: Bug[],
+    totalBugs: number,
+    pages: number
 }
 
 //for managing projects
@@ -63,7 +92,8 @@ export interface createProject {
     name: string,
     managerId?: number,
     sqaIds: string,
-    developerIds: string
+    developerIds: string,
+    description: string
 }
 
 export interface projectCreationResponse{
@@ -89,45 +119,41 @@ export interface userProjectsData {
     userType: AssignedUserTypes
 }
 
-
-
-//..............................
-
-// declare bugId: CreationOptional<number>;
-
-//   declare title: string;
-//   declare description: string;
-
-//   declare deadline: Date;
-
-//   declare type: BugType;
-
-//    declare status: status;
-//   declare projectId: ForeignKey<Project["projectId"]>;
-//   declare developerId: ForeignKey<User["id"]>;
-//   declare sqaId: ForeignKey<User["id"]>;
-
-//   declare project?: Project;
-//   declare developer?: User;
-//   declare sqa?: User;
-
-
 //create bug 
-
 export interface createBug{
     title: string,
     description: string,
-    deadline: Date,
+    deadline: string,
     type: BugType,
-    status: status,
+    status?: status,
     projectId: number,
     developerId: number,
     screenshot?: string
+}
 
+
+
+
+
+
+export interface updateBug{
+    title?: string,
+    description?: string,
+    deadline?: string,
+    type?: BugType,
+    status?: status,
+    projectId?: number,
+    developerId?: number
+    screenshot?: string
+}
+
+export interface editBug{
+    bug: updateBug,
+    bugStatus: status
 }
 
 export interface getBugs{
-    data: Bug[],
+    bugs: Bug[],
     succees: boolean,
     message: string,
     error?: Error,

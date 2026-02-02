@@ -26,14 +26,15 @@ export class Bug extends Model<InferAttributes<Bug>, InferCreationAttributes<Bug
   declare bugId: CreationOptional<number>;
   declare description: CreationOptional<string>
   declare screenshot?: CreationOptional<string | null>;
+  declare status?: CreationOptional<string | null>;
 
   declare title: string;
 
-  declare deadline: Date;
+  declare deadline: string;
 
   declare type: BugType;
 
-  declare status: status;
+  
   declare projectId: ForeignKey<Project["projectId"]>;
   declare developerId: ForeignKey<User["id"]>;
   declare sqaId: ForeignKey<User["id"]>;
@@ -49,22 +50,32 @@ Bug.init(
       primaryKey: true,
       autoIncrement: true
     },
+
     title: {
       type: DataTypes.STRING,
       allowNull: false
     },
+
     description: {
       type: DataTypes.TEXT,
       allowNull: false
     },
+
+    screenshot: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+
     deadline: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING,
       allowNull: false
     },
+
     type: {
       type: DataTypes.ENUM(...Object.values(BugType)),
       allowNull: false
     },
+
     projectId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -75,6 +86,7 @@ Bug.init(
       onUpdate: "CASCADE",
       onDelete: "CASCADE"
     },
+
     developerId: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -85,6 +97,7 @@ Bug.init(
       onUpdate: "CASCADE",
       onDelete: "SET NULL"
     },
+
     sqaId: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -95,10 +108,10 @@ Bug.init(
       onUpdate: "CASCADE",
       onDelete: "SET NULL"
     },
-    status: {
-        type: DataTypes.ENUM(...Object.values(status)),
-        defaultValue: "pending"
 
+    status: {
+      type: DataTypes.ENUM(...Object.values(status)),
+      defaultValue: status.PENDING
     }
   },
   {
