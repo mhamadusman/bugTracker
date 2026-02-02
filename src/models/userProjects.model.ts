@@ -17,7 +17,6 @@ export class UserProjects extends Model<InferAttributes<UserProjects>, InferCrea
 
   
 }
-
 UserProjects.init(
   {
     projectId: {
@@ -40,9 +39,7 @@ UserProjects.init(
         model: User,
         key: "id"
       },
-
       onDelete: "CASCADE",
-
       onUpdate: "CASCADE"
     },
     userType: {

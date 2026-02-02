@@ -1,28 +1,64 @@
 import multer from "multer";
-import path from "path";
 
-const storage = multer.diskStorage({
 
-  destination: function (req, file, cb) {
-    cb(null, "uploads/bugs");
+const bugStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/uploads/bugs");
   },
-
-  filename: function (req, file, cb) {
-    const fileName =
-      "bug-" + Date.now() + path.extname(file.originalname);
-    cb(null, fileName);
-  }
+   filename: (req , file , cb) => {
+        cb(null, file.originalname)
+    }
 });
 
 export const uploadBugScreenshot = multer({
-  storage: storage,
-  fileFilter: function (req, file, cb) {
+  storage: bugStorage,
+  fileFilter: (req, file, cb) => {
     if (file.mimetype === "image/png" || file.mimetype === "image/gif") {
       cb(null, true);
     } else {
-      cb(new Error("Only PNG and GIF images are allowed"));
+      cb(new Error("Only png or gif allowed"));
+    }
+  }
+});
+
+const projectStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/uploads/projects");
+  },
+   filename: (req , file , cb) => {
+        cb(null, file.originalname)
+    }
+});
+
+export const uploadProjectImage = multer({
+  storage: projectStorage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "image/png" || file.mimetype === "image/gif") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only PNG or GIF allowed"));
     }
   }
 });
 
 
+
+const userStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/uploads/users");
+  },
+   filename: (req , file , cb) => {
+        cb(null, file.originalname)
+    }
+});
+
+export const uploadUserImage = multer({
+  storage: userStorage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "image/png" || file.mimetype === "image/gif" || file.mimetype === "image/jpg") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only png or gif allowed"));
+    }
+  }
+});

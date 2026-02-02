@@ -11,17 +11,29 @@ import { Project } from "./project.model";
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>
 > {
   declare id: CreationOptional<number>;
+  declare image: CreationOptional<string | null> 
+  declare refreshToken: CreationOptional<string>;
   declare name: string;
   declare email: string;
   declare password: string;
   declare userType: string;
-  declare phoneNumber: number;
-  
+  declare phoneNumber: string;
   declare assignedProjects?: Project[];
 }
 
 User.init(
   {
+
+    refreshToken:{
+      type: DataTypes.STRING,
+      allowNull: true
+
+    },
+    image: {
+      type: DataTypes.STRING,
+      allowNull: true
+
+    },
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
@@ -49,8 +61,8 @@ User.init(
 
     },
     phoneNumber: {
-      type: new DataTypes.INTEGER,
-      allowNull: false
+      type: new DataTypes.STRING,
+      allowNull: true
     },
     
   },

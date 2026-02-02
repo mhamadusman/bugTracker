@@ -1,3 +1,4 @@
 node_modules/
 
 src/config/custome_variables.json
+public/uploads/ 
