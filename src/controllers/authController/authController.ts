@@ -24,7 +24,7 @@ class AuthController {
       const data = await AuthManager.login(req.body.email, req.body.password);
       res.cookie('auth_token', data.token, {
         httpOnly: true,
-        maxAge: 60 * 1000,
+        maxAge:  7 * 24 * 60 * 60 * 1000,
       });
 
       res.cookie('refresh_token', data.refreshToken, {
@@ -35,8 +35,6 @@ class AuthController {
       return res.status(successCodes.OK).json({
         message: 'Authorized',
         userType: data.userType,
-        token: data.token,
-        refreshToken: data.refreshToken
       });
     } catch (error) {
       console.log('error in login...in authController ' , error)
@@ -45,14 +43,12 @@ class AuthController {
   }
   static async refreshToken(req: Request , res: Response , next: NextFunction){
     try {
-      console.log('refresh token data from controller :: ', req.user?.id)
       const data = await AuthManager.getRefreshToken(Number(req.user?.id) , String(req.user?.email) , String(req.user?.userType))
-      console.log('refresh token data from controller :: ', data)
       res.cookie('auth_token', data.token, {
         httpOnly: true,
-        maxAge: 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-
+      console.log('succes ::  in refresh token controller during refresh token  ')
       res.cookie('refresh_token', data.refreshToken, {
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -61,8 +57,7 @@ class AuthController {
       return res.status(successCodes.OK).json({
         message: 'Authorized',
         userType: data.userType,
-        token: data.token,
-        refreshToken: data.refreshToken
+     
       });
     } catch (error) {
       console.log('error in refresh token controller during refresh token  ' , error)
@@ -71,5 +66,4 @@ class AuthController {
 
   }
 }
-
 export default AuthController;

@@ -5,13 +5,7 @@ export enum errorCodes {
   BAD_REQUEST = 400,
 
   CREATED =  201,
-
-  // 401 — User is NOT authenticated
-  // Use when: token missing, token expired, invalid credentials
   UNAUTHORIZED = 401,
-
-  // 403 — User is authenticated but NOT allowed
-  // Use when: user lacks permission/role for the action
   FORBIDDEN = 403,
 
   // 404 — Requested resource does not exist

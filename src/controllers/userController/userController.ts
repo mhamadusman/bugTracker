@@ -11,6 +11,15 @@ import { successMessages } from '../../constants/sucessMessages';
 export class UserController {
   //get all users
   static async getAllUsers(req: Request, res: Response, next: NextFunction) {
+    const id = Number(req.query.id)
+    if(id){
+      const user = await UserManager.findById(id)
+      res.status(successCodes.OK).json({
+        user: user
+      })
+    }else{
+      console.log('not')
+    }
     try {
       const users: User[] | null = await userHandler.getAllUsers();
       return res.status(200).json({
@@ -44,8 +53,7 @@ export class UserController {
   static async getDevelopers(req: Request<{ projectId: string }>, res: Response, next: NextFunction) {
     const projectId = Number(req.params.projectId);
     try {
-      const users: User[] | [] = await UserManager.getDevelopers(projectId);
-      console.log('develoeprs', users);
+      const users: User[] | [] = await UserManager.getDevelopers(projectId)
       return res.status(successCodes.OK).json({
         success: true,
         developers: users,
@@ -67,6 +75,16 @@ export class UserController {
       });
     } catch (error) {
       next(error);
+    }
+  }
+
+  static async getUser(req: Request , res: Response , next: NextFunction){
+    const id = Number(req.params.id)
+    try{
+        const user = await UserManager.findById(id)
+        return user 
+    }catch(error: any){
+      next (error)
     }
   }
 }

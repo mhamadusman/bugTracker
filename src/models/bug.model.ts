@@ -27,11 +27,8 @@ export class Bug extends Model<InferAttributes<Bug>, InferCreationAttributes<Bug
   declare description: CreationOptional<string>
   declare screenshot?: CreationOptional<string | null>;
   declare status?: CreationOptional<string | null>;
-
   declare title: string;
-
   declare deadline: string;
-
   declare type: BugType;
 
   

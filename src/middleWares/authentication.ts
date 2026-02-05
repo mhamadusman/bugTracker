@@ -54,24 +54,20 @@ export class Authentication {
 
 
   static async authenticateRefreshToken(req: Request, res: Response, next: NextFunction) {
-    console.log('inside refresh token.......')
     const authorization = req.headers.authorization;
-    let refreshToken = authorization?.split(' ')[1];
-
-    if (!refreshToken && req.cookies) {
+    let refreshToken
+    if (req.cookies) {
       refreshToken = req.cookies.refresh_token;
     }
     if(!refreshToken){
-        console.log('refresh token is :: ' , refreshToken)
+        console.log('refresh token  is expired  :: ' , refreshToken)
         throw new Exception (UserErrorMessages.REFRESH_TOKEN_EXPIRED, errorCodes.UNAUTHORIZED)
     }
     console.log('refresh token is :: ' , refreshToken)
     AuthUtils.validateRefreshTokenSTR(String(refreshToken))
     try {
-      const decoded = jwt.verify(refreshToken, config.jwt_key) as myJwtType;
-      console.log('decode value inside refreseh token :: ', decoded.userId)
+      const decoded = jwt.verify(refreshToken, config.REFRESH_TOKEN_SECRET) as myJwtType;
       const user = await AuthUtils.validateUserAndRefreshtoken(decoded.userId , refreshToken)
-      console.log('decode value inside refreseh token and usr is :: ', user)
       req.user = user;
       return next();
 
@@ -103,7 +99,6 @@ export class Authentication {
   }
 
   //validat sqa role for creating bug
-
   static async autorizeSQArole(req: Request, res: Response, next: NextFunction) {
     try {
       console.log(req.body);

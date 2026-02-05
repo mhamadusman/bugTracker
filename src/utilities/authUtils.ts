@@ -78,11 +78,10 @@ export class AuthUtils {
 
   static async validateUserAndRefreshtoken(id: number , refreshToken: string): Promise<User>{
     const user  = await UserUtil.findUserByid(id)
-    console.log('we are inside validateuser and refresh token  throwing error and user details are :: ', user)
     if(user.refreshToken !== refreshToken){
         console.log('refresh token are different ... ')
     }else{
-        console.log('refresh tokens are same.... ')
+        console.log('refresh tokens are same .... ')
     }
     if(!user || user.refreshToken !== refreshToken){
         throw new Exception(UserErrorMessages.REFRESH_TOKEN_EXPIRED, errorCodes.UNAUTHORIZED)

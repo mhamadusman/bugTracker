@@ -1,19 +1,23 @@
-import sequelize from '../config/database';
-import { Project } from '../models/project.model';
-import { UserProjects } from '../models/userProjects.model';
-import { createProject, project } from '../types/types';
-import { AssignedUserTypes } from '../types/types';
-import { Exception } from '../helpers/exception';
-import { errorMessages } from '../constants/errorMessages';
-import { errorCodes } from '../constants/errorCodes';
-import { userProjectsData } from '../types/types';
-import { User } from '../models/users.model';
-import { IProjects } from '../types/types';
-import { Op } from 'sequelize';
+import sequelize from "../config/database";
+import { Project } from "../models/project.model";
+import { UserProjects } from "../models/userProjects.model";
+import { createProject, project } from "../types/types";
+import { AssignedUserTypes } from "../types/types";
+import { Exception } from "../helpers/exception";
+import { errorMessages } from "../constants/errorMessages";
+import { errorCodes } from "../constants/errorCodes";
+import { userProjectsData } from "../types/types";
+import { User } from "../models/users.model";
+import { IProjects } from "../types/types";
+import { Op } from "sequelize";
 
 export class ProjectHandler {
   //create new project
-  static async createProject(data: createProject, imgurl: string, managerId: number): Promise<project> {
+  static async createProject(
+    data: createProject,
+    imgurl: string,
+    managerId: number,
+  ): Promise<project> {
     //first save data in proejcts then in junstion table using projct id
     const transaction = await sequelize.transaction();
     try {
@@ -28,30 +32,50 @@ export class ProjectHandler {
       );
 
       //now save data into junction table
-      const userProjectData: userProjectsData[] = this.createUserProjectData(newProject.projectId, data);
+      const userProjectData: userProjectsData[] = this.createUserProjectData(
+        newProject.projectId,
+        data,
+      );
       //now save into db
 
-      console.log('data which is going to save in userProjects..', userProjectData);
+      console.log(
+        "data which is going to save in userProjects..",
+        userProjectData,
+      );
 
-      const userProject = await UserProjects.bulkCreate(userProjectData, { transaction });
-      console.log('userproeject which is created is ', userProject);
+      const userProject = await UserProjects.bulkCreate(userProjectData, {
+        transaction,
+      });
+      console.log("userproeject which is created is ", userProject);
       await transaction.commit();
 
       return newProject;
     } catch (error) {
       await transaction.rollback();
-      throw new Exception(errorMessages.MESSAGES.SOMETHING_WENT_WRONG, errorCodes.INTERNAL_SERVER_ERROR);
+      throw new Exception(
+        errorMessages.MESSAGES.SOMETHING_WENT_WRONG,
+        errorCodes.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   //get all projects
-  static async getManagerProjects(managerId: number, page: number, limit: number): Promise<IProjects> {
+  static async getManagerProjects(
+    managerId: number,
+    page: number,
+    limit: number,
+    name: string,
+  ): Promise<IProjects> {
     const offset = (page - 1) * limit;
-    const { rows, count } = await Project.findAndCountAll({
-      where: { managerId },
+    const parameters: any = { managerId };
+    if (name.trim().length > 0) {
+      parameters.name = { [Op.iLike]: `%${name.trim()}%` };
+    }
+    let { rows, count } = await Project.findAndCountAll({
+      where: parameters,
       offset,
       limit,
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
 
     return {
@@ -61,8 +85,18 @@ export class ProjectHandler {
     };
   }
 
-  static async getSQAprojects(userId: number, page: number, limit: number): Promise<IProjects> {
+  static async getSQAnDevprojects(
+    userId: number,
+    page: number,
+    limit: number,
+    name: string,
+  ): Promise<IProjects> {
     const offset = (page - 1) * limit;
+    const parameters: any = {};
+    parameters.id = userId;
+    if (name.trim().length > 0) {
+      parameters.name = { [Op.iLike]: `%${name.trim()}%` };
+    }
     const result = await Project.findAndCountAll({
       offset,
       limit,
@@ -70,37 +104,13 @@ export class ProjectHandler {
       include: [
         {
           model: User,
-          as: 'assignedUsers',
-          where: { id: userId },
+          as: "assignedUsers",
+          where: parameters,
           through: { attributes: [] },
           attributes: [],
         },
       ],
-      order: [['createdAt', 'DESC']],
-    });
-
-    return {
-      totalProjects: result.count,
-      projects: result.rows,
-      pages: Math.ceil(result.count / limit),
-    };
-  }
-  static async getDeveloperProjects(userId: number, page: number, limit: number): Promise<IProjects> {
-    const offset = (page - 1) * limit;
-    const result = await Project.findAndCountAll({
-      offset,
-      limit,
-      distinct: true,
-      include: [
-        {
-          model: User,
-          as: 'assignedUsers',
-          where: { id: userId },
-          through: { attributes: [] },
-          attributes: [],
-        },
-      ],
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
 
     return {
@@ -123,20 +133,50 @@ export class ProjectHandler {
   }
 
   //edit project
-  static async editProject(projectId: number, data: createProject, imageURL: string) {
+  static async editProject(
+    projectId: number,
+    data: createProject,
+    imageURL: string,
+  ) {
     const transaction = await sequelize.transaction();
     //update name in project table
-    await Project.update({ name: data.name, description: data.description, image: imageURL }, { where: { projectId }, transaction });
-    //remove old data from junction table
-    await UserProjects.destroy({ where: { projectId }, transaction });
-    const userProjectData: userProjectsData[] = this.createUserProjectData(projectId, data);
-    const userProject = await UserProjects.bulkCreate(userProjectData, { transaction });
-    await transaction.commit();
+    if (imageURL.length > 0) {
+      await Project.update(
+        { name: data.name, description: data.description, image: imageURL },
+        { where: { projectId }, transaction },
+      );
+      await UserProjects.destroy({ where: { projectId }, transaction });
+      const userProjectData: userProjectsData[] = this.createUserProjectData(
+        projectId,
+        data,
+      );
+      const userProject = await UserProjects.bulkCreate(userProjectData, {
+        transaction,
+      });
+      await transaction.commit();
+    } else {
+      await Project.update(
+        { name: data.name, description: data.description },
+        { where: { projectId }, transaction },
+      );
+      await UserProjects.destroy({ where: { projectId }, transaction });
+      const userProjectData: userProjectsData[] = this.createUserProjectData(
+        projectId,
+        data,
+      );
+      const userProject = await UserProjects.bulkCreate(userProjectData, {
+        transaction,
+      });
+      await transaction.commit();
+    }
   }
-  static createUserProjectData(projectId: number, data: createProject): userProjectsData[] {
+  static createUserProjectData(
+    projectId: number,
+    data: createProject,
+  ): userProjectsData[] {
     const userProjectData: userProjectsData[] = [];
-    const developerIds = data.developerIds.split(',').map((id) => Number(id));
-    const sqaIds = data.sqaIds.split(',').map((id) => Number(id));
+    const developerIds = data.developerIds.split(",").map((id) => Number(id));
+    const sqaIds = data.sqaIds.split(",").map((id) => Number(id));
 
     developerIds.forEach((userId) => {
       userProjectData.push({
@@ -168,8 +208,8 @@ export class ProjectHandler {
     return users;
   }
 
-  static async validateProjectId(projectId: number): Promise<Project | null>{
-    const project = await Project.findByPk(projectId)
-    return project
+  static async validateProjectId(projectId: number): Promise<Project | null> {
+    const project = await Project.findByPk(projectId);
+    return project;
   }
 }

@@ -25,7 +25,7 @@ export class UserManager {
       where: { projectId: projectId },
     });
     const userIds = users.map((user) => user.userId);
-    //now get users
+    //now get qas and devs 
     const developers = await userHandler.getAllDevelopers(userIds);
     return developers;
   }
