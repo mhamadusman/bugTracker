@@ -1,12 +1,16 @@
-import { BugType } from '../models/bug.model';
-import { status } from '../models/bug.model';
-import { Bug } from '../models/bug.model';
-import { Project } from '../models/project.model';
+import { BugType } from "../models/bug.model";
+import { status } from "../models/bug.model";
+import { Bug } from "../models/bug.model";
+import { User } from "../models/users.model";
 
+export interface ValidationError {
+  field: string;
+  message: string;
+}
 export enum UserTypes {
-  DEVELOPER = 'developer',
-  SQA = 'sqa',
-  MANAGER = 'manager',
+  DEVELOPER = "developer",
+  SQA = "sqa",
+  MANAGER = "manager"
 }
 
 export interface createUser {
@@ -28,10 +32,6 @@ export interface updateUser {
 export interface signUpResponse {
   error?: Error;
   message?: string;
-  sucess?: boolean;
-  user_id?: number;
-  email?: string;
-  toke?: string;
 }
 
 export interface loginResponse {
@@ -60,31 +60,74 @@ export interface project {
 }
 
 export interface IProjects {
-  projects: Project[];
   totalProjects: number;
   pages: number;
+  projectsWithDetails: IProjectDTO[];
 }
+
+export interface IProjectDTO {
+  projectId: number;
+  name: string;
+  description: string;
+  image: string | null;
+  devTeam: User[];
+  qaTeam: User[];
+  createdAt: Date;
+  updatedAt: Date;
+  taskComplete: number;
+  totalBugs: number;
+}
+
+export interface IBugDTO {
+  bugId: number;
+  title: string;
+  description: string;
+  status: string;
+  screenshot: string | null;
+  projectId: number;
+  developerId: number;
+  deadline: Date;
+  sqaId: number;
+  createdAt: Date;
+  updatedAt: Date;
+  isClose: boolean;
+}
+interface IAssignedUser {
+  id: number;
+  name: string;
+  image: string;
+}
+
+export interface IBugWithDeveloper {
+  bug: IBugDTO;
+  developer: IAssignedUser;
+  sqa: IAssignedUser;
+}
+
 export interface IBugs {
-  bugs?: Bug[];
-  totalBugs?: number;
-  pages?: number;
-  statusCount?: number;
+  totalBugs: number;
+  pages: number;
+  statusCount: number;
+  bugsWithDeveloper: IBugWithDeveloper[];
 }
 
 //for managing projects
-
 export enum AssignedUserTypes {
-  DEVELOPER = 'developer',
-  SQA = 'sqa',
+  DEVELOPER = "developer",
+  SQA = "sqa",
 }
 
 export interface createProject {
   name: string;
+  projectId?: number;
   managerId?: number;
   sqaIds: string;
   developerIds: string;
   description: string;
   image?: string;
+  qaEmails: string;
+  devEmails: string;
+  managerName: string;
 }
 
 export interface projectCreationResponse {
@@ -96,7 +139,6 @@ export interface projectCreationResponse {
 }
 
 export interface deleteProjectResponse {
-  sucess: boolean;
   message: string;
   error?: Error;
 }
@@ -118,6 +160,7 @@ export interface createBug {
   projectId: number;
   developerId: number;
   screenshot?: string;
+  isClose?: boolean;
 }
 
 export interface updateBug {

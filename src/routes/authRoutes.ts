@@ -8,4 +8,5 @@ export const authRoutes = Router()
 authRoutes.post('/sign-up' , AuthController.signUp)
 authRoutes.post('/login' , AuthController.login)
 authRoutes.post ('/refresh-token' , Authentication.authenticateRefreshToken , AuthController.refreshToken)
+authRoutes.post('/log-out' , Authentication.authenticate , AuthController.logout)
 

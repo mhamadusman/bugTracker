@@ -1,4 +1,11 @@
-import { createBug, IBugs, IBugState, project } from "../../types/types";
+import {
+  createBug,
+  IBugs,
+  IBugState,
+  IBugWithDeveloper,
+  project,
+  updateBug,
+} from "../../types/types";
 import { Bug, status } from "../../models/bug.model";
 import { bugHandler } from "../../handlers/bugsHandler";
 import { BugUtil } from "../../utilities/bugUtils";
@@ -13,13 +20,14 @@ export class BugManagr {
     data: createBug,
     userId: number,
     imgurl: string,
-  ): Promise<void> {
-    console.log("inside bugMnager create bug function", data);
+  ): Promise<IBugWithDeveloper | null> {
     await BugUtil.validateBugRequest(data);
-    await ProjectUils.validateProjectId(data.projectId);
-    await BugUtil.validateBugTitle(data.title, data.projectId);
-    await bugHandler.createBug(data, userId, imgurl);
-    return;
+    const newBug: IBugWithDeveloper | null = await bugHandler.createBug(
+      data,
+      userId,
+      imgurl,
+    );
+    return newBug;
   }
 
   static async getAllBugs(
@@ -30,7 +38,7 @@ export class BugManagr {
     title: string,
     projectId?: number,
   ): Promise<IBugs> {
-    let bugs: IBugs;
+    let bugs;
     if (projectId) {
       await ProjectUils.validateProjectId(projectId);
       bugs = await bugHandler.getAllBugs(
@@ -47,26 +55,44 @@ export class BugManagr {
     return bugs;
   }
 
-  //update bug status developere duty
   static async updateBugStatus(
     bugId: number,
     bugStatus: status,
     userId: number,
   ) {
-    console.log(typeof bugStatus);
-    //validat bug is connect to actual developer
     await BugUtil.authorizeDeveloper(bugId, userId);
     await BugUtil.validateBugStatus(bugStatus);
-    //now save
     await bugHandler.updateBugStatus(bugStatus, bugId);
   }
-  static async updateBug(bug: Bug, imgurl: string, bugId: number) {
-    await BugUtil.validateUpdateRequest(bug);
-    await BugUtil.validateBugTitle(bug.title, bug.projectId, bugId);
-    await bugHandler.updateBug(bug, imgurl, bugId);
-    return;
+
+  static async handleBugReview(
+    bugId: number,
+    bug: Partial<Bug>,
+    userId: number,
+  ) {
+    await BugUtil.validateBugReviewDetails(bugId, bug, userId);
+    await bugHandler.updateBugReview(bug, bugId);
   }
 
+  static async updateBug(
+    bug: createBug,
+    imgurl: string,
+    bugId: number,
+    userId: number,
+  ): Promise<IBugWithDeveloper | null> {
+    if (bug.isClose !== undefined && !bug.projectId) {
+      await this.handleBugReview(bugId, bug, userId);
+      return null
+    }
+    await BugUtil.validateBugRequest(bug, bugId);
+    //}
+    const updatedBug: IBugWithDeveloper | null = await bugHandler.updateBug(
+      bug,
+      imgurl,
+      bugId,
+    );
+    return updatedBug;
+  }
   static async deleteBug(bugId: number, sqaId: number) {
     const bug = await bugHandler.getSQAbug(bugId, sqaId);
     if (!bug) {

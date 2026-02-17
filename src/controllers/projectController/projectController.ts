@@ -10,6 +10,7 @@ import { User } from "../../models/users.model";
 import { errorCodes } from "../../constants/errorCodes";
 import { successCodes } from "../../constants/sucessCodes";
 import { successMessages } from "../../constants/sucessMessages";
+import { emailService } from "../../services/emailService";
 
 declare global {
   namespace Express {
@@ -22,7 +23,7 @@ declare global {
 export class ProjectController {
   static async createProjct(
     req: Request<{}, project, createProject>,
-    res: Response<project>,
+    res: Response<{message: string }>,
     next: NextFunction,
   ) {
     try {
@@ -30,29 +31,40 @@ export class ProjectController {
       if (req.file) {
         imgurl = `/uploads/projects/${req.file.filename}`;
       }
-      const project: project = await projectManager.createProject(
+
+      let { qaEmails, devEmails, name, description, managerName } = req.body;
+      const qaEmailsArray: string[] = qaEmails ? qaEmails.split(",") : [];
+      const devEmailsArray: string[] = devEmails ? devEmails.split(",") : [];
+      const allRecepient = [...qaEmailsArray, ...devEmailsArray];
+      const project = await projectManager.createProject(
         req.body,
         String(imgurl),
         Number(req.user?.id),
       );
+      emailService.notifyNewProjectCreation(
+        allRecepient,
+        managerName,
+        name,
+        description,
+      );
       return res.status(errorCodes.CREATED).json({
-        sucess: true,
-        message: successMessages.MESSAGES.CREATED,
-        managerId: project.managerId,
-        name: project.name,
-        projectId: project.projectId,
-        image: project.image,
+        message: successMessages.MESSAGES.CREATED
       });
-    } catch (error) {
-      console.log("error ocured in projectController.createProject", error);
+    } catch (error: any) {
+      console.log("error ocured in projectController.createProject", error.message);
       next(error);
     }
   }
-  //get specifi proejets using user  id based on role manger sqa and developer
-  static async getProjects(req: Request, res: Response, next: NextFunction) {
+
+  static async getProjects(
+    req: Request,
+    res: Response<IProjects>,
+    next: NextFunction,
+  ) {
     const page: number = Number(req.query.page) || 1;
     const limit: number = Number(req.query.limit) || 6;
     const name = (req.query.name as string) || "";
+
     try {
       const result: IProjects = await projectManager.getProjects(
         Number(req.user?.id),
@@ -61,14 +73,14 @@ export class ProjectController {
         limit,
         name,
       );
+
       return res.status(successCodes.OK).json({
-        count: result?.totalProjects,
-        message: `total number of porjects found ${result?.totalProjects}`,
-        projects: result.projects,
+        totalProjects: result.totalProjects,
         pages: result.pages,
+        projectsWithDetails: result.projectsWithDetails,
       });
     } catch (error) {
-      console.log("error in fetching projects..... ", error);
+      console.log("error during fetching projects :: ", error);
       next(error);
     }
   }
@@ -78,43 +90,43 @@ export class ProjectController {
     res: Response<deleteProjectResponse>,
     next: NextFunction,
   ) {
-    const projectId = String(req.params.projectId);
+    const projectId = Number(req.params.projectId);
     try {
-      //first validate project is connected with manager
-      const managerId = String(req.user!.id);
+      const managerId = Number(req.user?.id);
       await projectManager.deleteProjectById(projectId, managerId);
       return res.status(200).json({
-        sucess: true,
-        message: "proeject deleted sucessfully",
+        message: successMessages.MESSAGES.DELETED,
       });
     } catch (error) {
+      console.log("error during deleting project :: ", error);
       next(error);
     }
   }
 
-  //edit project
   static async editProject(
     req: Request<{ projectId: string }, {}, createProject>,
     res: Response,
     next: NextFunction,
   ) {
     const projectId: number = Number(req.params.projectId);
+    const managerId: number = Number(req.user?.id)
     try {
-      let imgURL = "";
+      let imgURL: string = "";
       if (req.file) {
         imgURL = `/uploads/projects/${req.file.filename}`;
       }
-      await projectManager.editProject(
+
+       await projectManager.editProject(
         projectId,
         req.body,
-        Number(req.user?.id),
+        managerId,
         imgURL,
       );
       return res.status(successCodes.OK).json({
-        status: true,
-        message: successMessages.MESSAGES.UPDATED,
+        message: successMessages.MESSAGES.UPDATED
       });
     } catch (error) {
+      console.log('error during edit project :: ' , error)
       next(error);
     }
   }

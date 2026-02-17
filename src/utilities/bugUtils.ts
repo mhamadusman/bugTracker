@@ -5,108 +5,106 @@ import { errorCodes } from "../constants/errorCodes";
 import { Bug, BugType } from "../models/bug.model";
 import { status } from "../models/bug.model";
 import { bugHandler } from "../handlers/bugsHandler";
+import { ProjectUils } from "./projectUtils";
+import { ValidationError } from "../types/types";
+import { BugErrorMessages, BugFields } from '../constants/BugErrorMessages';
+import { userHandler } from "../handlers/userHandler";
 
 export class BugUtil {
-  static async validateUpdateRequest(data: Bug) {
-    console.log("bug data is", data);
 
-    if (!data.title || data.title.trim() === "") {
+  static async validateBugReviewDetails(
+    bugId: number,
+    bug: Partial<Bug>,
+    userId: number,
+  ) {
+    const bugdetails = await bugHandler.getSQAbug(bugId, userId);
+    if (!bugdetails) {
       throw new Exception(
-        "Title is required and cannot be empty",
+        UserErrorMessages.INVALID_REQUEST_STATE,
         errorCodes.BAD_REQUEST,
       );
     }
-
-    if (!data.description || data.description.trim() === "") {
-      throw new Exception(
-        "Description is required and cannot be empty",
-        errorCodes.BAD_REQUEST,
-      );
-    }
-
-    if (!data.deadline) {
-      throw new Exception("Deadline is required", errorCodes.BAD_REQUEST);
-    }
-
-    if (!data.type || !Object.values(BugType).includes(data.type)) {
-      throw new Exception(
-        `Invalid Bug Type. Provided: ${data.type}`,
-        errorCodes.BAD_REQUEST,
-      );
-    }
-
-    if (!data.developerId) {
-      throw new Exception("Developer ID is missing", errorCodes.BAD_REQUEST);
-    }
-
-    console.log("validation completed...");
-
-    return;
+    this.validateBugStatus(bug.status as status);
   }
-  static async validateBugRequest(data: createBug): Promise<void> {
-    console.log("bug data is", data);
 
-    if (!data.title || data.title.trim() === "") {
-      throw new Exception(
-        "Title is required and cannot be empty",
-        errorCodes.BAD_REQUEST,
-      );
+  static async validateBugRequest(data: createBug, bugId?: number) {
+    const { title, description, deadline, type, projectId, developerId } = data;
+    const errors: ValidationError[] = [];
+
+    if (!title?.trim()) {
+      errors.push({ field: BugFields.TITLE, message: BugErrorMessages.TITLE_REQUIRED });
     }
 
-    if (!data.description || data.description.trim() === "") {
-      throw new Exception(
-        "Description is required and cannot be empty",
-        errorCodes.BAD_REQUEST,
-      );
+    if (!description?.trim()) {
+      errors.push({
+        field: BugFields.DESCRIPTION,
+        message: BugErrorMessages.DESCRIPTION_REQUIRED,
+      });
     }
+
     const today = new Date();
-    if (!data.deadline || new Date(data.deadline) < today) {
-      throw new Exception(
-        "Deadline is required and it must be valide date ",
-        errorCodes.BAD_REQUEST,
-      );
+    today.setHours(0, 0, 0, 0);
+    if (!deadline || new Date(deadline) < today) {
+      errors.push({
+        field: BugFields.DEADLINE,
+        message: BugErrorMessages.INVALID_DEADLINE,
+      });
     }
 
-    if (!data.type || !Object.values(BugType).includes(data.type)) {
-      throw new Exception(
-        `Invalid Bug Type. Provided: ${data.type}`,
-        errorCodes.BAD_REQUEST,
-      );
+    if (!type || !Object.values(BugType).includes(type)) {
+      errors.push({ field: BugFields.TYPE, message: BugErrorMessages.INVALID_TYPE });
     }
 
-    if (!data.projectId) {
-      throw new Exception("Project ID is missing", errorCodes.BAD_REQUEST);
+    if (!developerId || !(await userHandler.findById(developerId))) {
+      errors.push({
+        field: BugFields.DEVELOPER_ID,
+        message: BugErrorMessages.DEVELOPER_REQUIRED,
+      });
     }
 
-    if (!data.developerId) {
-      throw new Exception("Developer ID is missing", errorCodes.BAD_REQUEST);
+    const isDuplicate = await this.validateBugTitle(title, projectId, bugId);
+    if (isDuplicate) {
+      errors.push({
+        field: BugFields.TITLE,
+        message: BugErrorMessages.DUPLICATE_TITLE,
+      });
     }
 
-    return;
+    const isProjectValid = await ProjectUils.validateProjectId(projectId);
+    if (!isProjectValid) {
+      errors.push({
+        field: BugFields.PROJECT_ID,
+        message: BugErrorMessages.INVALID_PROJECT_ID,
+      });
+    }
+
+    if (errors.length > 0) {
+      throw new Exception(errors, errorCodes.BAD_REQUEST);
+    }
   }
 
   static async validateBugTitle(
     title: string,
     projectId: number,
     bugId?: number,
-  ): Promise<void> {
+  ) {
     const bug: Bug | null = await Bug.findOne({
       where: {
         title,
         projectId,
       },
     });
-
-    if (bug && bug.bugId !== bugId) {
-      throw new Exception(
-        UserErrorMessages.DUPLICATE_BUG_WITH_PROJECT_SCOPE,
-        errorCodes.BAD_REQUEST,
-      );
+    if (!bug) return false;
+    if (!bugId && bug) {
+      return true;
     }
-    console.log("title validation completed...");
+
+    if (bugId && bug.bugId === bugId) {
+      return false;
+    }
+    return true;
   }
 
-  //get all bugs related to a project
   static async getBugs(
     projectId: number,
     userId: number,
@@ -137,7 +135,7 @@ export class BugUtil {
   static async validateBugStatus(bugStatus: status) {
     if (!Object.values(status).includes(bugStatus)) {
       throw new Exception(
-        UserErrorMessages.INVALID_DATA,
+        UserErrorMessages.INVALID_BUG_STATUS,
         errorCodes.BAD_REQUEST,
       );
     }

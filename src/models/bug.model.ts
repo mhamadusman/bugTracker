@@ -27,6 +27,7 @@ export class Bug extends Model<InferAttributes<Bug>, InferCreationAttributes<Bug
   declare description: CreationOptional<string>
   declare screenshot?: CreationOptional<string | null>;
   declare status?: CreationOptional<string | null>;
+  declare isClose?: CreationOptional<boolean>;
   declare title: string;
   declare deadline: string;
   declare type: BugType;
@@ -42,6 +43,12 @@ export class Bug extends Model<InferAttributes<Bug>, InferCreationAttributes<Bug
 }
 Bug.init(
   {
+
+    isClose: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+
     bugId: {
       type: DataTypes.INTEGER,
       primaryKey: true,

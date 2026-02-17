@@ -1,8 +1,13 @@
+import { errorCodes } from '../../constants/errorCodes';
+import { UserErrorMessages } from '../../constants/userErrorMessag';
+import { ProjectHandler } from '../../handlers/projectHandlers';
 import { userHandler } from '../../handlers/userHandler';
+import { Exception } from '../../helpers/exception';
 import { UserProjects } from '../../models/userProjects.model';
 import { User } from '../../models/users.model';
 import { updateUser } from '../../types/types';
 import { AuthUtils } from '../../utilities/authUtils';
+import { ProjectUils } from '../../utilities/projectUtils';
 import { UserUtil } from '../../utilities/userUtil';
 
 export class UserManager {
@@ -19,14 +24,13 @@ export class UserManager {
     }
     await userHandler.updateUser(data, hashedPassword, image, id);
   }
-  //get all develoeprs on a specific project
+  //get all users on a specific project having role=developer
   static async getDevelopers(projectId: number): Promise<User[] | []> {
-    const users: UserProjects[] | [] = await UserProjects.findAll({
-      where: { projectId: projectId },
-    });
-    const userIds = users.map((user) => user.userId);
-    //now get qas and devs 
-    const developers = await userHandler.getAllDevelopers(userIds);
+    const project = await ProjectUils.validateProjectId(projectId)
+    if(!project){
+      throw new Exception(UserErrorMessages.PROJECT_NOT_FOUND , errorCodes.BAD_REQUEST)
+    }
+    const developers = ProjectHandler.getDevelopers(projectId)
     return developers;
   }
   

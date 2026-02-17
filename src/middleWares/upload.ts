@@ -1,12 +1,18 @@
 import multer from "multer";
-
+import path from 'path'
 
 const bugStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "public/uploads/bugs");
   },
+
    filename: (req , file , cb) => {
-        cb(null, file.originalname)
+      const fullName = path.basename(file.originalname)
+      const cleanName = fullName.replace(/[^a-zA-Z0-9.\-_]/g, '-');
+      const uniqueId = Date.now() + '-' + Math.round(Math.random() * 1E9)
+      const extension = path.extname(file.originalname);
+      const name = path.basename(cleanName ,  extension);
+      cb(null, `${name}-${uniqueId}${extension}`);
     }
 });
 
@@ -26,7 +32,12 @@ const projectStorage = multer.diskStorage({
     cb(null, "public/uploads/projects");
   },
    filename: (req , file , cb) => {
-        cb(null, file.originalname)
+      const fullName = path.basename(file.originalname)
+      const cleanName = fullName.replace(/[^a-zA-Z0-9.\-_]/g, '-');
+      const uniqueId = Date.now() + '-' + Math.round(Math.random() * 1E9)
+      const extension = path.extname(file.originalname);
+      const name = path.basename(cleanName ,  extension);
+      cb(null, `${name}-${uniqueId}${extension}`);
     }
 });
 
@@ -48,7 +59,12 @@ const userStorage = multer.diskStorage({
     cb(null, "public/uploads/users");
   },
    filename: (req , file , cb) => {
-        cb(null, file.originalname)
+      const fullName = path.basename(file.originalname)
+      const cleanName = fullName.replace(/[^a-zA-Z0-9.\-_]/g, '-');
+      const uniqueId = Date.now() + '-' + Math.round(Math.random() * 1E9)
+      const extension = path.extname(file.originalname);
+      const name = path.basename(cleanName ,  extension);
+      cb(null, `${name}-${uniqueId}${extension}`);
     }
 });
 

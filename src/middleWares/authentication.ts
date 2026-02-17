@@ -1,17 +1,11 @@
-import bcrypt from 'bcrypt';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import config from '../config/custome_variables.json';
-import cookieParser from 'cookie-parser';
-import { userHandler } from '../handlers/userHandler';
-
-import { Request, Response, NextFunction } from 'express';
-import { Exception } from '../helpers/exception';
-import { UserErrorMessages } from '../constants/userErrorMessag';
-import { errorCodes } from '../constants/errorCodes';
-import { errorMessages } from '../constants/errorMessages';
-import { User } from '../models/users.model';
-import { AuthUtils } from '../utilities/authUtils';
-import { UserUtil } from '../utilities/userUtil';
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { Request, Response, NextFunction } from "express";
+import { Exception } from "../helpers/exception";
+import { UserErrorMessages } from "../constants/userErrorMessag";
+import { errorCodes } from "../constants/errorCodes";
+import { User } from "../models/users.model";
+import { AuthUtils } from "../utilities/authUtils";
+import { UserUtil } from "../utilities/userUtil";
 
 interface myJwtType extends JwtPayload {
   userId: number;
@@ -28,8 +22,7 @@ declare global {
 export class Authentication {
   static async authenticate(req: Request, res: Response, next: NextFunction) {
     const authorization = req.headers.authorization;
-    let token = authorization?.split(' ')[1];
-
+    let token = authorization?.split(" ")[1];
     if (!token && req.cookies) {
       token = req.cookies.auth_token;
     }
@@ -41,10 +34,13 @@ export class Authentication {
     }
 
     try {
-      const decode = jwt.verify(token, config.jwt_key) as myJwtType;
-      const user = await UserUtil.findUserByid(decode.userId)
+      const decode = jwt.verify(
+        token,
+        process.env.JWT_ACCESS_TOKEN_SECRET as string
+      ) as myJwtType;
+      const user = await UserUtil.findUserByid(decode.userId);
       req.user = user;
-      next();
+      next()
     } catch (error) {
       res.status(errorCodes.UNAUTHORIZED).json({
         message: UserErrorMessages.ACCESS_DENIED,
@@ -52,87 +48,92 @@ export class Authentication {
     }
   }
 
-
-  static async authenticateRefreshToken(req: Request, res: Response, next: NextFunction) {
-    const authorization = req.headers.authorization;
-    let refreshToken
-    if (req.cookies) {
-      refreshToken = req.cookies.refresh_token;
-    }
-    if(!refreshToken){
-        console.log('refresh token  is expired  :: ' , refreshToken)
-        throw new Exception (UserErrorMessages.REFRESH_TOKEN_EXPIRED, errorCodes.UNAUTHORIZED)
-    }
-    console.log('refresh token is :: ' , refreshToken)
-    AuthUtils.validateRefreshTokenSTR(String(refreshToken))
+  static async authenticateRefreshToken(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
-      const decoded = jwt.verify(refreshToken, config.REFRESH_TOKEN_SECRET) as myJwtType;
-      const user = await AuthUtils.validateUserAndRefreshtoken(decoded.userId , refreshToken)
+      const refreshToken = req.cookies?.refresh_token;
+      if (!refreshToken) {
+        console.log("console from authenticateRefreshToken middleware :: No refresh token provided in cookies");
+        return next(
+          new Exception(
+            UserErrorMessages.REFRESH_TOKEN_EXPIRED,
+            errorCodes.UNAUTHORIZED,
+          ),
+        );
+      }
+      AuthUtils.validateRefreshTokenSTR(String(refreshToken));
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET as string 
+      ) as myJwtType;
+      const user = await AuthUtils.validateUserAndRefreshtoken(
+        decoded.userId,
+        refreshToken,
+      );
       req.user = user;
-      return next();
-
+      next();
     } catch (err) {
-        console.log('error is authenticate refresh token middleware:: ', err)
-        next(err)
+      console.error("Error in refresh token middle ware ::", err);
+      next(err);
     }
   }
 
-  //check manager role autherization
-  static async autorizeManagerRole(req: Request, res: Response, next: NextFunction) {
+  static async autorizeManagerRole(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
-      console.log('inside authorization for user role');
-      console.log(req.body);
-      console.log('this is the user details which i attach to req , ', req.user);
-
-      //   const user  = await userHandler.findById(Number(req.body.managerId))
-      if (req.user?.userType === 'manager') {
-        console.log(`this is the user : ${req.user?.name} : ${req.user?.userType}`);
-        console.log('role is verified for manager ');
+      if (req.user?.userType === "manager") {
         return next();
-      } else {
-        console.log('user not verified...');
       }
-      throw new Exception(UserErrorMessages.ACCESS_DENIED, errorCodes.UNAUTHORIZED);
+      throw new Exception(
+        UserErrorMessages.ACCESS_DENIED,
+        errorCodes.UNAUTHORIZED,
+      );
     } catch (error) {
+      console.log("error in authenticating manager role :: ", error);
       next(error);
     }
   }
 
-  //validat sqa role for creating bug
-  static async autorizeSQArole(req: Request, res: Response, next: NextFunction) {
+  static async autorizeSQArole(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
-      console.log(req.body);
-      console.log('this is the user details which i attach to req , ', req.user);
-
-      //   const user  = await userHandler.findById(Number(req.body.managerId))
-      if (req.user?.userType === 'sqa') {
-        console.log(`this is the user : ${req.user?.name} : ${req.user?.userType}`);
-        console.log('role is verified for sqa role ');
+      if (req.user?.userType === "sqa") {
         return next();
-      } else {
-        console.log('user not verified...');
       }
-      throw new Exception(UserErrorMessages.ACCESS_DENIED, errorCodes.UNAUTHORIZED);
+      throw new Exception(
+        UserErrorMessages.ACCESS_DENIED,
+        errorCodes.UNAUTHORIZED,
+      );
     } catch (error) {
+      console.log("error in authenticating qa role :: ", error);
       next(error);
     }
   }
 
-  static async autorizeDeveloperRole(req: Request, res: Response, next: NextFunction) {
+  static async autorizeDeveloperRole(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
-      console.log(req.body);
-      console.log('this is the user details which i attach to req , ', req.user);
-
-      //   const user  = await userHandler.findById(Number(req.body.managerId))
-      if (req.user?.userType === 'developer') {
-        console.log(`this is the user : ${req.user?.name} : ${req.user?.userType}`);
-        console.log('role is verified for developer role ');
+      if (req.user?.userType === "developer") {
         return next();
-      } else {
-        console.log('user not verified...');
       }
-      throw new Exception(UserErrorMessages.ACCESS_DENIED, errorCodes.UNAUTHORIZED);
+      throw new Exception(
+        UserErrorMessages.ACCESS_DENIED,
+        errorCodes.UNAUTHORIZED,
+      );
     } catch (error) {
+      console.log("error in authenticating developer role :: ", error);
       next(error);
     }
   }

@@ -12,7 +12,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
 > {
   declare id: CreationOptional<number>;
   declare image: CreationOptional<string | null> 
-  declare refreshToken: CreationOptional<string>;
+  declare refreshToken: CreationOptional<string | null>;
   declare name: string;
   declare email: string;
   declare password: string;

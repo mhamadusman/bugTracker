@@ -1,29 +1,25 @@
+import dotenv from 'dotenv'
+dotenv.config()
 import http from "http";
-import dotenv from "dotenv";
-import { app } from "./app";
-import config from './config/custome_variables.json'
-import './models/association'
-
+import app from "./app";
+import 'pg'
 import sequelize from "./config/database";
+import { User, Project, Bug, UserProjects } from './models/association';
 
 const server = http.createServer(app);
-
-const port = config.sever_port || 3000;
+const port = process.env.PORT || 8080
 
 const startServer = async () => {
   try {
     await sequelize.authenticate();
+    //await sequelize.sync({ alter: true });
     console.log('Database connected successfully');
-    await sequelize.sync({alter: true});
-  
-
-    app.listen(port , () => {
+    server.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
   } catch (error) {
     console.error('Unable to start server:', error);
   }
 };
-
 
 startServer();

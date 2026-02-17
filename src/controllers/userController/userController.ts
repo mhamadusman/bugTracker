@@ -1,25 +1,13 @@
-import { NextFunction, Request, Response } from 'express';
-import { User } from '../../models/users.model';
-import { userHandler } from '../../handlers/userHandler';
-import { UserUtil } from '../../utilities/userUtil';
-import { successCodes } from '../../constants/sucessCodes';
-import { UserProjects } from '../../models/userProjects.model';
-import { UserManager } from './userManager';
-import { updateUser } from '../../types/types';
-import { successMessages } from '../../constants/sucessMessages';
+import { NextFunction, Request, Response } from "express";
+import { User } from "../../models/users.model";
+import { userHandler } from "../../handlers/userHandler";
+import { successCodes } from "../../constants/sucessCodes";
+import { UserManager } from "./userManager";
+import { updateUser } from "../../types/types";
+import { successMessages } from "../../constants/sucessMessages";
 
 export class UserController {
-  //get all users
   static async getAllUsers(req: Request, res: Response, next: NextFunction) {
-    const id = Number(req.query.id)
-    if(id){
-      const user = await UserManager.findById(id)
-      res.status(successCodes.OK).json({
-        user: user
-      })
-    }else{
-      console.log('not')
-    }
     try {
       const users: User[] | null = await userHandler.getAllUsers();
       return res.status(200).json({
@@ -29,6 +17,7 @@ export class UserController {
         users: users,
       });
     } catch (error) {
+      console.log('error in creating user profile :: ' , error)
       next(error);
     }
   }
@@ -36,7 +25,6 @@ export class UserController {
     try {
       const user = await UserManager.findById(Number(req.user?.id));
       return res.status(successCodes.OK).json({
-        sucess: true,
         user: {
           name: user.name,
           email: user.email,
@@ -46,24 +34,35 @@ export class UserController {
         },
       });
     } catch (error) {
+      console.log('error in getting user profile :: ' , error)
       next(error);
     }
   }
-  //get developers  on a project
-  static async getDevelopers(req: Request<{ projectId: string }>, res: Response, next: NextFunction) {
+  //get  users having role=developer on a project
+  static async getDevelopers(
+    req: Request<{ projectId: string }>,
+    res: Response,
+    next: NextFunction,
+  ) {
     const projectId = Number(req.params.projectId);
     try {
-      const users: User[] | [] = await UserManager.getDevelopers(projectId)
+      const developers = await UserManager.getDevelopers(projectId);
       return res.status(successCodes.OK).json({
-        success: true,
-        developers: users,
+        developers: developers,
       });
     } catch (error) {
-      console.log('error in fetching users on a specific project from usersProject table ', error);
+      console.log(
+        "error in fetching developers on a specific project  ",
+        error,
+      );
       next(error);
     }
   }
-  static async updateProfile(req: Request<{}, updateUser>, res: Response, next: NextFunction) {
+  static async updateProfile(
+    req: Request<{}, updateUser>,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
       let imageUrl = null;
       if (req.file) {
@@ -74,17 +73,18 @@ export class UserController {
         message: successMessages.MESSAGES.UPDATED,
       });
     } catch (error) {
+      console.log("error happened in update user profile :: ", error);
       next(error);
     }
   }
 
-  static async getUser(req: Request , res: Response , next: NextFunction){
-    const id = Number(req.params.id)
-    try{
-        const user = await UserManager.findById(id)
-        return user 
-    }catch(error: any){
-      next (error)
-    }
-  }
+  // static async getUser(req: Request, res: Response, next: NextFunction) {
+  //   const id = Number(req.params.id);
+  //   try {
+  //     const user = await UserManager.findById(id);
+  //     return user;
+  //   } catch (error: any) {
+  //     next(error);
+  //   }
+  // }
 }

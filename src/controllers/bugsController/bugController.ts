@@ -1,17 +1,21 @@
 import { Request, Response, NextFunction } from "express";
-import { createBug, IBugs, IBugState } from "../../types/types";
+import {
+  createBug,
+  IBugs,
+  IBugState,
+  IBugWithDeveloper,
+} from "../../types/types";
 import { BugManagr } from "./bugsManager";
 import { successCodes } from "../../constants/sucessCodes";
 import { successMessages } from "../../constants/sucessMessages";
-import { Bug } from "../../models/bug.model";
-import { getBugs } from "../../types/types";
-import { ProjectUils } from "../../utilities/projectUtils";
 import { projectManager } from "../projectController/projectManager";
-
+import { status } from "../../models/bug.model";
+import { errorMessages } from "../../constants/errorMessages";
+import { UserErrorMessages } from "../../constants/userErrorMessag";
 export class BugController {
   static async createBug(
     req: Request<{}, {}, createBug>,
-    res: Response,
+    res: Response<IBugWithDeveloper | null>,
     next: NextFunction,
   ) {
     try {
@@ -19,21 +23,17 @@ export class BugController {
       if (req.file) {
         imgurl = `/uploads/bugs/${req.file.filename}`;
       }
-      console.log("img path", imgurl);
-      console.log("data is ", req.body);
-      await BugManagr.createBug(req.body, Number(req.user?.id), String(imgurl));
-
-      return res.status(successCodes.CREATED).json({
-        sucess: true,
-        message: successMessages.MESSAGES.CREATED,
-      });
+      const newBug: IBugWithDeveloper | null = await BugManagr.createBug(
+        req.body,
+        Number(req.user?.id),
+        String(imgurl),
+      );
+      return res.status(successCodes.CREATED).json(newBug);
     } catch (error) {
-      console.log("error creating new bug inside bug controller :: ", error);
+      console.log("error creating new bug  :: ", error);
       next(error);
     }
   }
-
-  //it will return bug status....
   static async getBugState(
     req: Request,
     res: Response<IBugState>,
@@ -77,9 +77,10 @@ export class BugController {
           projectId,
         );
         return res.status(successCodes.OK).json({
-          totalBugs: result?.totalBugs,
+          totalBugs: result.totalBugs,
           pages: result.pages,
-          bugs: result.bugs,
+          statusCount: result.statusCount,
+          bugsWithDeveloper: result.bugsWithDeveloper,
         });
       } catch (error) {
         console.log(
@@ -98,10 +99,12 @@ export class BugController {
           limit,
           title,
         );
+        console.log(result.bugsWithDeveloper)
         return res.status(successCodes.OK).json({
-          totalBugs: result?.totalBugs,
+          totalBugs: result.totalBugs,
           pages: result.pages,
-          bugs: result.bugs,
+          statusCount: result.statusCount,
+          bugsWithDeveloper: result.bugsWithDeveloper,
         });
       } catch (error) {
         console.log("error in getting bugs in controller :: ", error);
@@ -111,7 +114,7 @@ export class BugController {
   }
 
   static async updateBug(
-    req: Request<{ bugId: string }, {}, any>,
+    req: Request<{ bugId: string }, {}, createBug>,
     res: Response,
     next: NextFunction,
   ) {
@@ -119,28 +122,26 @@ export class BugController {
     const userType = String(req.user?.userType);
     const userId = Number(req.user?.id);
 
-    if (userType === "developer") {
-      try {
-        const { bugStatus } = req.body;
-        await BugManagr.updateBugStatus(bugId, bugStatus, userId);
-        return res.status(successCodes.NO_CONTENT).json({
-          success: true,
+    try {
+      if (userType === "developer") {
+        const status = req.body.status as status;
+        await BugManagr.updateBugStatus(bugId, status, userId);
+        return res.status(successCodes.OK).json({
           message: successMessages.MESSAGES.UPDATED,
         });
-      } catch (error) {
-        next(error);
-      }
-    } else if (userType === "sqa") {
-      try {
+      } else if (userType === "sqa") {
         let imgurl = req.file ? `/uploads/bugs/${req.file.filename}` : "";
-        await BugManagr.updateBug(req.body, imgurl, bugId);
-        return res.status(successCodes.NO_CONTENT).json({
-          success: true,
+        const updatedBug = await BugManagr.updateBug(req.body, imgurl, bugId , userId);
+        return res.status(200).json({
           message: successMessages.MESSAGES.UPDATED,
+          ...updatedBug,
         });
-      } catch (error) {
-        next(error);
       }
+
+      return res.status(403).json({ message: UserErrorMessages.UNAUTHORIZED });
+    } catch (error: any) {
+      console.error("Error occurred in updateBug controller :: ", error);
+      next(error);
     }
   }
 
@@ -152,7 +153,7 @@ export class BugController {
     try {
       const bugId = req.params.bugId;
       await BugManagr.deleteBug(Number(bugId), Number(req.user?.id));
-      return res.status(successCodes.NO_CONTENT).json({
+      return res.status(successCodes.OK).json({
         message: successMessages.MESSAGES.DELETED,
       });
     } catch (error) {
