@@ -125,8 +125,8 @@ export interface createProject {
   developerIds: string;
   description: string;
   image?: string;
-  qaEmails: string;
-  devEmails: string;
+  qaIds: string;
+  devIds: string;
   managerName: string;
 }
 

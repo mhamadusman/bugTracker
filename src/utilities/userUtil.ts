@@ -1,7 +1,7 @@
 import { errorCodes } from "../constants/errorCodes";
 import { Exception } from "../helpers/exception";
 import { UserErrorMessages } from "../constants/userErrorMessag";
-import {  updateUser } from "../types/types";
+import { updateUser } from "../types/types";
 import { User } from "../models/users.model";
 import { userHandler } from "../handlers/userHandler";
 import { AuthUtils } from "./authUtils";
@@ -48,7 +48,7 @@ export class UserUtil {
           field: UserFields.PHONE_NUMBER,
           message: UserProfileErrorMessages.PHONE_REQUIRED,
         });
-      } else if (!/^[0-9]{11}$/.test(phone)) {
+      } else if (!/^\+?[0-9]+$/.test(phone.trim())) {
         errors.push({
           field: UserFields.PHONE_NUMBER,
           message: UserProfileErrorMessages.PHONE_INVALID,

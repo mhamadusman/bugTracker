@@ -78,13 +78,4 @@ export class UserController {
     }
   }
 
-  // static async getUser(req: Request, res: Response, next: NextFunction) {
-  //   const id = Number(req.params.id);
-  //   try {
-  //     const user = await UserManager.findById(id);
-  //     return user;
-  //   } catch (error: any) {
-  //     next(error);
-  //   }
-  // }
 }

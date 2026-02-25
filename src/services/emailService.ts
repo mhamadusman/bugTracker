@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import { emailNotificationSchema } from "../schemas/emailNotifySchema";
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -12,7 +14,7 @@ export class emailService {
     try {
       const info = await transporter.sendMail({
         from: `"Project System" <${process.env.SENDER_EMAIL}>`,
-        to: to,
+        bcc: to,
         subject: subject,
         html: html,
       });
@@ -20,7 +22,7 @@ export class emailService {
       return info;
     } catch (error) {
       console.error("Email Service Error:", error);
-      return null
+      return null;
     }
   }
 
@@ -28,22 +30,35 @@ export class emailService {
     receivers: string[],
     managerName: string,
     projectName: string,
-    description: string
+    description: string,
   ) {
-    const htmlBody = `
-      <div style="font-family: sans-serif; line-height: 1.5;">
-        <h2>New Project Assigned</h2>
-        <p><strong>Manager:</strong> ${managerName}</p>
-        <p><strong>Project Name:</strong> ${projectName}</p>
-        <hr />
-        <p><strong>Description:</strong></p>
-        <p>${description}</p>
-      </div>
-    `;
-    if(receivers.length === 0){
-      return 
-    }
-    await this.sendEmail(receivers, `Project Created: ${projectName}`, htmlBody);
-  }
+    try {
+      const validated = emailNotificationSchema.parse({
+        receivers,
+        managerName,
+        projectName,
+        description,
+      });
+      const htmlBody = `
+        <div style="font-family: sans-serif; line-height: 1.5;">
+          <h2>New Project Assigned</h2>
+          <p><strong>Manager:</strong> ${validated.managerName}</p>
+          <p><strong>Project Name:</strong> ${validated.projectName}</p>
+          <hr />
+          <p><strong>Description:</strong></p>
+          <p>${validated.description}</p>
+        </div>
+      `;
 
+      if (validated.receivers.length === 0) return;
+
+      await this.sendEmail(
+        validated.receivers,
+        `Project Created: ${validated.projectName}`,
+        htmlBody,
+      );
+    } catch (error) {
+      console.error("Email failed in background:", error);
+    }
+  }
 }

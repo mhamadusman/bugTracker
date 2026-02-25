@@ -2,7 +2,8 @@ import { createProject, IProjects, project } from "../../types/types";
 import { ProjectUils } from "../../utilities/projectUtils";
 import { ProjectHandler } from "../../handlers/projectHandlers";
 import { UserUtil } from "../../utilities/userUtil";
-
+import { userHandler } from "../../handlers/userHandler";
+import { User } from "../../models/users.model";
 export class projectManager {
   static async createProject(
     data: createProject,
@@ -32,7 +33,16 @@ export class projectManager {
       name,
     );
   }
-
+  static async getAllRecepientEmails(
+    qasIds: string,
+    devIds: string,
+  ): Promise<string[]> {
+    const devsId = devIds ? devIds.split(",").map((id) => Number(id)) : [];
+    const qaIds = qasIds ? qasIds.split(",").map((id) => Number(id)) : [];
+    const allIds = [...qaIds, ...devsId];
+    const users = await userHandler.getdevAndQaEmails(allIds);
+    return users.map((user: any) => user.email).filter(Boolean);
+  }
   // static async validateUser(id: number) {
   //   console.log(
   //     `inside validate user function in projectManager and typeof id is ${typeof id}`,
@@ -45,12 +55,10 @@ export class projectManager {
   // ) {
   //   await ProjectUils.validateManagerAndProject(userId, projectId);
   // }
-
   static async deleteProjectById(projectId: number, managerId: number) {
     await ProjectUils.validateManagerAndProject(managerId, projectId);
     await ProjectHandler.deleteProjectUsingId(projectId);
   }
-
   static async editProject(
     projectId: number,
     projectData: createProject,
@@ -58,13 +66,8 @@ export class projectManager {
     imgURL: string,
   ) {
     await ProjectUils.validateProjectData(projectData, managerId, projectId);
-    await ProjectHandler.editProject(
-      projectId,
-      projectData,
-      imgURL,
-    );
+    await ProjectHandler.editProject(projectId, projectData, imgURL);
   }
-
   static async validateProjectId(id: number) {
     await ProjectUils.validateProjectId(id);
   }

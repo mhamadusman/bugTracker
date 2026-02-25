@@ -23,7 +23,7 @@ declare global {
 export class ProjectController {
   static async createProjct(
     req: Request<{}, project, createProject>,
-    res: Response<{message: string }>,
+    res: Response<{ message: string }>,
     next: NextFunction,
   ) {
     try {
@@ -32,10 +32,12 @@ export class ProjectController {
         imgurl = `/uploads/projects/${req.file.filename}`;
       }
 
-      let { qaEmails, devEmails, name, description, managerName } = req.body;
-      const qaEmailsArray: string[] = qaEmails ? qaEmails.split(",") : [];
-      const devEmailsArray: string[] = devEmails ? devEmails.split(",") : [];
-      const allRecepient = [...qaEmailsArray, ...devEmailsArray];
+      let { developerIds, sqaIds, name, description, managerName } = req.body;
+      const allRecepient = await projectManager.getAllRecepientEmails(
+        sqaIds,
+        developerIds,
+      );
+
       const project = await projectManager.createProject(
         req.body,
         String(imgurl),
@@ -47,11 +49,15 @@ export class ProjectController {
         name,
         description,
       );
+
       return res.status(errorCodes.CREATED).json({
-        message: successMessages.MESSAGES.CREATED
+        message: successMessages.MESSAGES.CREATED,
       });
     } catch (error: any) {
-      console.log("error ocured in projectController.createProject", error.message);
+      console.log(
+        "error ocured in projectController.createProject",
+        error.message,
+      );
       next(error);
     }
   }
@@ -109,24 +115,19 @@ export class ProjectController {
     next: NextFunction,
   ) {
     const projectId: number = Number(req.params.projectId);
-    const managerId: number = Number(req.user?.id)
+    const managerId: number = Number(req.user?.id);
     try {
       let imgURL: string = "";
       if (req.file) {
         imgURL = `/uploads/projects/${req.file.filename}`;
       }
 
-       await projectManager.editProject(
-        projectId,
-        req.body,
-        managerId,
-        imgURL,
-      );
+      await projectManager.editProject(projectId, req.body, managerId, imgURL);
       return res.status(successCodes.OK).json({
-        message: successMessages.MESSAGES.UPDATED
+        message: successMessages.MESSAGES.UPDATED,
       });
     } catch (error) {
-      console.log('error during edit project :: ' , error)
+      console.log("error during edit project :: ", error);
       next(error);
     }
   }

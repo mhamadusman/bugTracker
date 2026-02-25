@@ -43,6 +43,20 @@ export class userHandler {
     });
     return users;
   }
+
+  static async getdevAndQaEmails(ids: number[]): Promise<User[] | []> {
+    const users = await User.findAll({
+      attributes: ['email'],
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+      raw: true, 
+    });
+    return users;
+}
+  
   static async updateUser(
     data: updateUser,
     password: string,

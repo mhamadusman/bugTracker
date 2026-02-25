@@ -213,36 +213,50 @@ export class ProjectHandler {
     imageURL: string,
   ) {
     const transaction = await sequelize.transaction();
-    const updatePayload: any = {
-      name: data.name,
-      description: data.description,
-    };
-    if (imageURL.length > 0) {
-      updatePayload.image = imageURL;
-      const project = await this.getProjectUsingId(projectId);
-      const oldImage = project?.image;
-      if (oldImage && oldImage !== "null") {
-        console.log("old image is :: ", oldImage);
-        const oldImagePath = path.join(__dirname, "../../public", oldImage);
-        try {
-          await fs.unlink(oldImagePath);
-          console.log("old image deleted successfully", oldImage);
-        } catch (error) {
-          console.log("error happend during deleting old image :: ", error);
+    let oldImageToDelete: string | null = null;
+    try {
+      const updatedPro: any = {
+        name: data.name,
+        description: data.description,
+      };
+      if (imageURL && imageURL.length > 0) {
+        updatedPro.image = imageURL;
+        const project = await this.getProjectUsingId(projectId);
+        if (project?.image && project.image !== "null") {
+          oldImageToDelete = project.image;
         }
       }
+      await Project.update(updatedPro, {
+        where: { projectId },
+        transaction,
+      });
+      await UserProjects.destroy({ where: { projectId }, transaction });
+      const userProjectData = this.createUserProjectData(projectId, data);
+      await UserProjects.bulkCreate(userProjectData, { transaction });
+      await transaction.commit();
+      if (oldImageToDelete) {
+        const oldImagePath = path.join(
+          __dirname,
+          "../../public",
+          oldImageToDelete,
+        );
+        try {
+          await fs.unlink(oldImagePath);
+        } catch (err) {
+          console.log("Error deleting old image file ::", err);
+        }
+      }
+    } catch (error) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        console.log("Error during rollback :: ", rollbackError);
+      }
+      throw new Exception(
+        errorMessages.MESSAGES.SOMETHING_WENT_WRONG,
+        errorCodes.INTERNAL_SERVER_ERROR,
+      );
     }
-    //delete image ....get project and theend
-
-    await Project.update(updatePayload, {
-      where: { projectId },
-      transaction,
-    });
-    await UserProjects.destroy({ where: { projectId }, transaction });
-    const userProjectData = this.createUserProjectData(projectId, data);
-    await UserProjects.bulkCreate(userProjectData, { transaction });
-    await transaction.commit();
-    //return await this.getSingleProjectDetails(projectId);
   }
   static createUserProjectData(
     projectId: number,
@@ -282,7 +296,6 @@ export class ProjectHandler {
     const project = await Project.findByPk(projectId);
     return project;
   }
-
   static async getDevelopers(projectId: number): Promise<User[]> {
     const project: any = await Project.findByPk(projectId, {
       attributes: [],
@@ -295,7 +308,6 @@ export class ProjectHandler {
         },
       ],
     });
-
     return project?.developers || [];
   }
   // static async getSingleProjectDetails(
