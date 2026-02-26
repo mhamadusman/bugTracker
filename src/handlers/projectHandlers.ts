@@ -242,6 +242,7 @@ export class ProjectHandler {
         );
         try {
           await fs.unlink(oldImagePath);
+          console.log('old image removed :: ' , oldImagePath)
         } catch (err) {
           console.log("Error deleting old image file ::", err);
         }
