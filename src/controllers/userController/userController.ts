@@ -69,7 +69,7 @@ export class UserController {
         imageUrl = `/uploads/users/${req.file.filename}`;
       }
       await UserManager.updateUser(req.body, Number(req.user?.id), imageUrl);
-      return res.status(successCodes.NO_CONTENT).json({
+      return res.status(successCodes.OK).json({
         message: successMessages.MESSAGES.UPDATED,
       });
     } catch (error) {
