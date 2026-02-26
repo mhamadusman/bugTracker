@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import cloudinary from "../../config/cloudinary";
+
 import {
   createProject,
   project,
@@ -56,7 +58,7 @@ export class ProjectController {
     } catch (error: any) {
       console.log(
         "error ocured in projectController.createProject",
-        error.message,
+        error,
       );
       next(error);
     }

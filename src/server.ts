@@ -5,7 +5,6 @@ import app from "./app";
 import 'pg'
 import sequelize from "./config/database";
 import { User, Project, Bug, UserProjects } from './models/association';
-
 const server = http.createServer(app);
 const port = process.env.PORT || 8080
 
