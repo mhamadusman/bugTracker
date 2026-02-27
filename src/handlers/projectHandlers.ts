@@ -2,7 +2,7 @@ import sequelize from "../config/database";
 import { User } from "../models/association";
 import { UserProjects } from "../models/association";
 import { Project } from "../models/association";
-import { createProject } from "../types/types";
+import { createProject, project } from "../types/types";
 import { AssignedUserTypes } from "../types/types";
 import { Exception } from "../helpers/exception";
 import { errorMessages } from "../constants/errorMessages";
@@ -11,12 +11,14 @@ import { userProjectsData } from "../types/types";
 import { IProjects } from "../types/types";
 import { IProjectDTO } from "../types/types";
 import { Op, literal } from "sequelize";
+import { CloudinaryService } from "../services/cloudinarySerevice";
 import path from "path";
 import fs from "fs/promises";
 export class ProjectHandler {
   static async createProject(
     data: createProject,
     imgurl: string,
+    imagePublicId: string,
     managerId: number,
   ): Promise<{ projectId: number; image: string | undefined }> {
     const transaction = await sequelize.transaction();
@@ -28,6 +30,7 @@ export class ProjectHandler {
           name: data.name,
           managerId: managerId,
           image: imgurl,
+          imagePublicId: imagePublicId,
           description: data.description,
         },
         { transaction },
@@ -211,9 +214,10 @@ export class ProjectHandler {
     projectId: number,
     data: createProject,
     imageURL: string,
+    imagePublicId: string,
   ) {
     const transaction = await sequelize.transaction();
-    let oldImageToDelete: string | null = null;
+
     try {
       const updatedPro: any = {
         name: data.name,
@@ -221,9 +225,13 @@ export class ProjectHandler {
       };
       if (imageURL && imageURL.length > 0) {
         updatedPro.image = imageURL;
+        updatedPro.imagePublicId = imagePublicId;
         const project = await this.getProjectUsingId(projectId);
-        if (project?.image && project.image !== "null") {
-          oldImageToDelete = project.image;
+        if (project?.imagePublicId) {
+          const response = await CloudinaryService.deleteImage(
+            project.imagePublicId,
+          );
+          console.log("old image deleted :: ", response);
         }
       }
       await Project.update(updatedPro, {
@@ -234,19 +242,6 @@ export class ProjectHandler {
       const userProjectData = this.createUserProjectData(projectId, data);
       await UserProjects.bulkCreate(userProjectData, { transaction });
       await transaction.commit();
-      if (oldImageToDelete) {
-        const oldImagePath = path.join(
-          __dirname,
-          "../../public",
-          oldImageToDelete,
-        );
-        try {
-          await fs.unlink(oldImagePath);
-          console.log('old image removed :: ' , oldImagePath)
-        } catch (err) {
-          console.log("Error deleting old image file ::", err);
-        }
-      }
     } catch (error) {
       try {
         await transaction.rollback();
@@ -311,41 +306,4 @@ export class ProjectHandler {
     });
     return project?.developers || [];
   }
-  // static async getSingleProjectDetails(
-  //   projectId: number,
-  // ): Promise<IProjectDTO | null> {
-  //   const project: any = await Project.findByPk(projectId, {
-  //     include: [
-  //       {
-  //         model: User,
-  //         as: "assignedUsers",
-  //         through: { attributes: [] },
-  //         attributes: ["id", "name", "image", "userType"],
-  //       },
-  //       {
-  //         model: Bug,
-  //         as: "bugs",
-  //         attributes: ["status"],
-  //       },
-  //     ],
-  //   });
-  //   if (!project) return null;
-  //   const bugs = project.bugs || [];
-  //   const completed = bugs.filter((b: any) => b.status === "completed").length;
-  //   const totalBugs = bugs.length;
-  //   return {
-  //     projectId: project.projectId,
-  //     name: project.name,
-  //     description: project.description,
-  //     image: project.image ?? null,
-  //     devTeam: project.assignedUsers.filter(
-  //       (u: any) => u.userType === "developer",
-  //     ),
-  //     qaTeam: project.assignedUsers.filter((u: any) => u.userType === "sqa"),
-  //     createdAt: project.createdAt,
-  //     updatedAt: project.updatedAt,
-  //     taskComplete: completed,
-  //     totalBugs: totalBugs,
-  //   };
-  // }
 }

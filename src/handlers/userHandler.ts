@@ -1,6 +1,7 @@
 import { User } from "../models/association";
 import { Op } from "sequelize";
 import { createUser, updateUser } from "../types/types";
+import { CloudinaryService } from "../services/cloudinarySerevice";
 export class userHandler {
   static async createUser(data: createUser, hashedPassword: string) {
     await User.create({
@@ -62,17 +63,26 @@ export class userHandler {
     password: string,
     image: string | null,
     id: number,
+    imagePublicId: string | null
   ) {
     const updateData: any = {
       name: data.name,
       phoneNumber: data.phoneNumber,
       email: data.email,
     };
+    if(imagePublicId){
+      updateData.imagePublicId = imagePublicId
+    }
     if (password.length > 0) {
       updateData.password = password;
     }
     if (image) {
       updateData.image = image;
+    }
+    const user = await this.findById(id)
+    if(user?.imagePublicId && imagePublicId){
+      const response = await CloudinaryService.deleteImage(user.imagePublicId)
+      console.log('deleted old profile :: ' , response)
     }
     await User.update(updateData, { where: { id } });
   }

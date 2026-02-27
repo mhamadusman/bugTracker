@@ -1,80 +1,62 @@
 import multer from "multer";
-import path from 'path'
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary";
+import path from "path";
 
-const bugStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/uploads/bugs");
-  },
+const generateSafeName = (file: Express.Multer.File) => {
+  console.log('inside generate file name')
+  const safeBaseName = path.basename(file.originalname);
+  const extension = path.extname(safeBaseName);
+  const cleanName = path.basename(safeBaseName, extension).replace(/[^a-zA-Z0-9]/g, '-');
+  const uniqueId = Date.now() + '-' + Math.round(Math.random() * 1E9);
+  return `${cleanName}-${uniqueId}`;
+};
 
-   filename: (req , file , cb) => {
-      const fullName = path.basename(file.originalname)
-      const cleanName = fullName.replace(/[^a-zA-Z0-9.\-_]/g, '-');
-      const uniqueId = Date.now() + '-' + Math.round(Math.random() * 1E9)
-      const extension = path.extname(file.originalname);
-      const name = path.basename(cleanName ,  extension);
-      cb(null, `${name}-${uniqueId}${extension}`);
-    }
-});
+const createStorage = (folderName: string) => {
+   console.log('inside create storage')
+  return new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: async (req, file) => {
+      return {
+        folder: `bugTracker/${folderName}`,
+        public_id: generateSafeName(file),
+      };
+    },
+  });
+};
 
 export const uploadBugScreenshot = multer({
-  storage: bugStorage,
+  storage: createStorage('bugs'),
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "image/png" || file.mimetype === "image/gif") {
+    const allowed = ["image/png", "image/gif"];
+    if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Only png or gif allowed"));
+      cb(new Error("Only png or gif allowed") as any, false);
     }
   }
-});
-
-const projectStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/uploads/projects");
-  },
-   filename: (req , file , cb) => {
-      const fullName = path.basename(file.originalname)
-      const cleanName = fullName.replace(/[^a-zA-Z0-9.\-_]/g, '-');
-      const uniqueId = Date.now() + '-' + Math.round(Math.random() * 1E9)
-      const extension = path.extname(file.originalname);
-      const name = path.basename(cleanName ,  extension);
-      cb(null, `${name}-${uniqueId}${extension}`);
-    }
 });
 
 export const uploadProjectImage = multer({
-  storage: projectStorage,
+  storage: createStorage('projects'),
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "image/png" || file.mimetype === "image/gif") {
+    const allowed = ["image/png", "image/gif"];
+    if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Only PNG or GIF allowed"));
+      cb(new Error("Only PNG or GIF allowed") as any, false);
     }
   }
 });
 
-
-
-const userStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/uploads/users");
-  },
-   filename: (req , file , cb) => {
-      const fullName = path.basename(file.originalname)
-      const cleanName = fullName.replace(/[^a-zA-Z0-9.\-_]/g, '-');
-      const uniqueId = Date.now() + '-' + Math.round(Math.random() * 1E9)
-      const extension = path.extname(file.originalname);
-      const name = path.basename(cleanName ,  extension);
-      cb(null, `${name}-${uniqueId}${extension}`);
-    }
-});
-
 export const uploadUserImage = multer({
-  storage: userStorage,
+  storage: createStorage('users'),
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "image/png" || file.mimetype === "image/gif" || file.mimetype === "image/jpg") {
+    const allowed = ["image/png", "image/gif"];
+    if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Only png or gif allowed"));
+      cb(new Error("Only png or gif allowed") as any, false);
     }
   }
 });

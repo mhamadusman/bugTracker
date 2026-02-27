@@ -10,7 +10,6 @@ import { successCodes } from "../../constants/sucessCodes";
 import { successMessages } from "../../constants/sucessMessages";
 import { projectManager } from "../projectController/projectManager";
 import { status } from "../../models/bug.model";
-import { errorMessages } from "../../constants/errorMessages";
 import { UserErrorMessages } from "../../constants/userErrorMessag";
 export class BugController {
   static async createBug(
@@ -19,14 +18,17 @@ export class BugController {
     next: NextFunction,
   ) {
     try {
-      let imgurl = null;
+      let imgurl = "";
+      let imagePublicId = "";
       if (req.file) {
-        imgurl = `/uploads/bugs/${req.file.filename}`;
+        imgurl = req.file.path;
+        imagePublicId = req.file.filename;
       }
       const newBug: IBugWithDeveloper | null = await BugManagr.createBug(
         req.body,
         Number(req.user?.id),
         String(imgurl),
+        imagePublicId,
       );
       return res.status(successCodes.CREATED).json(newBug);
     } catch (error) {
@@ -99,7 +101,7 @@ export class BugController {
           limit,
           title,
         );
-        console.log(result.bugsWithDeveloper)
+        console.log(result.bugsWithDeveloper);
         return res.status(successCodes.OK).json({
           totalBugs: result.totalBugs,
           pages: result.pages,
@@ -130,8 +132,20 @@ export class BugController {
           message: successMessages.MESSAGES.UPDATED,
         });
       } else if (userType === "sqa") {
-        let imgurl = req.file ? `/uploads/bugs/${req.file.filename}` : "";
-        const updatedBug = await BugManagr.updateBug(req.body, imgurl, bugId , userId);
+        let imgurl = "";
+        let imagePublicId = "";
+        if (req.file) {
+          imgurl = req.file.path;
+          imagePublicId = req.file.filename;
+        }
+
+        const updatedBug = await BugManagr.updateBug(
+          req.body,
+          imgurl,
+          imagePublicId,
+          bugId,
+          userId,
+        );
         return res.status(200).json({
           message: successMessages.MESSAGES.UPDATED,
           ...updatedBug,

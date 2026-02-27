@@ -57,6 +57,7 @@ export interface project {
   sucess?: boolean;
   description?: string;
   image?: string | null;
+  imagePublicId?: string
 }
 
 export interface IProjects {

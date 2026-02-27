@@ -12,6 +12,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
 > {
   declare id: CreationOptional<number>;
   declare image: CreationOptional<string | null> 
+  declare imagePublicId: CreationOptional<string | null> 
   declare refreshToken: CreationOptional<string | null>;
   declare name: string;
   declare email: string;
@@ -28,6 +29,10 @@ User.init(
       type: DataTypes.STRING,
       allowNull: true
 
+    },
+    imagePublicId: { 
+      type: DataTypes.STRING,
+      allowNull: true
     },
     image: {
       type: DataTypes.STRING,

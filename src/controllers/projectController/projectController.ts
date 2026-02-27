@@ -30,9 +30,11 @@ export class ProjectController {
   ) {
     try {
       let imgurl = "";
+      let imagePublicId  = "";
       if (req.file) {
-        imgurl = `/uploads/projects/${req.file.filename}`;
-      }
+      imgurl = req.file.path; 
+      imagePublicId = req.file.filename;
+    }
 
       let { developerIds, sqaIds, name, description, managerName } = req.body;
       const allRecepient = await projectManager.getAllRecepientEmails(
@@ -43,6 +45,7 @@ export class ProjectController {
       const project = await projectManager.createProject(
         req.body,
         String(imgurl),
+        imagePublicId,
         Number(req.user?.id),
       );
       emailService.notifyNewProjectCreation(
@@ -119,12 +122,14 @@ export class ProjectController {
     const projectId: number = Number(req.params.projectId);
     const managerId: number = Number(req.user?.id);
     try {
-      let imgURL: string = "";
+      let imgurl = "";
+      let imagePublicId  = "";
       if (req.file) {
-        imgURL = `/uploads/projects/${req.file.filename}`;
-      }
+      imgurl = req.file.path; 
+      imagePublicId = req.file.filename;
+    }
 
-      await projectManager.editProject(projectId, req.body, managerId, imgURL);
+      await projectManager.editProject(projectId, req.body, managerId, imgurl , imagePublicId);
       return res.status(successCodes.OK).json({
         message: successMessages.MESSAGES.UPDATED,
       });

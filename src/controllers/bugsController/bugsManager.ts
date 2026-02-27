@@ -20,12 +20,14 @@ export class BugManagr {
     data: createBug,
     userId: number,
     imgurl: string,
+    imagePublicId: string
   ): Promise<IBugWithDeveloper | null> {
     await BugUtil.validateBugRequest(data);
     const newBug: IBugWithDeveloper | null = await bugHandler.createBug(
       data,
       userId,
       imgurl,
+      imagePublicId
     );
     return newBug;
   }
@@ -77,6 +79,7 @@ export class BugManagr {
   static async updateBug(
     bug: createBug,
     imgurl: string,
+    imagePublicId: string,
     bugId: number,
     userId: number,
   ): Promise<IBugWithDeveloper | null> {
@@ -89,6 +92,7 @@ export class BugManagr {
     const updatedBug: IBugWithDeveloper | null = await bugHandler.updateBug(
       bug,
       imgurl,
+      imagePublicId,
       bugId,
     );
     return updatedBug;

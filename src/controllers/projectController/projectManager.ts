@@ -8,12 +8,14 @@ export class projectManager {
   static async createProject(
     data: createProject,
     imgurl: string,
+    imagePublicId: string,
     managerId: number,
   ): Promise<{ projectId: number; image: string | undefined }> {
     await ProjectUils.validateProjectData(data);
     const newProject = await ProjectHandler.createProject(
       data,
       imgurl,
+      imagePublicId,
       managerId,
     );
     return newProject;
@@ -64,9 +66,10 @@ export class projectManager {
     projectData: createProject,
     managerId: number,
     imgURL: string,
+    imagePublicId: string
   ) {
     await ProjectUils.validateProjectData(projectData, managerId, projectId);
-    await ProjectHandler.editProject(projectId, projectData, imgURL);
+    await ProjectHandler.editProject(projectId, projectData, imgURL , imagePublicId);
   }
   static async validateProjectId(id: number) {
     await ProjectUils.validateProjectId(id);

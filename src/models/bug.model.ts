@@ -26,6 +26,7 @@ export class Bug extends Model<InferAttributes<Bug>, InferCreationAttributes<Bug
   declare bugId: CreationOptional<number>;
   declare description: CreationOptional<string>
   declare screenshot?: CreationOptional<string | null>;
+  declare imagePublicId: CreationOptional<string | null> 
   declare status?: CreationOptional<string | null>;
   declare isClose?: CreationOptional<boolean>;
   declare title: string;
@@ -66,6 +67,10 @@ Bug.init(
     },
 
     screenshot: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    imagePublicId: { 
       type: DataTypes.STRING,
       allowNull: true
     },

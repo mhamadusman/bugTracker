@@ -42,6 +42,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
+  console.error('actual error from request :: ' , error)
   if (error instanceof Exception) {
     return res.status(error.statusCode).json({
       message: error.message || errorMessages.MESSAGES.SOMETHING_WENT_WRONG,
@@ -53,5 +54,7 @@ app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
     message: errorMessages.MESSAGES.INTERNAL_SERVER_ERROR,
   });
 });
+
+
 
 export default app

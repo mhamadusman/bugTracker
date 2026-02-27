@@ -7,12 +7,14 @@ import { Op } from "sequelize";
 import { IBugWithDeveloper } from "../types/types";
 import path from "path";
 import fs from "fs/promises";
+import { CloudinaryService } from "../services/cloudinarySerevice";
 
 export class bugHandler {
   static async createBug(
     data: createBug,
     userId: number,
     imgurl: string,
+    imagePublicId: string 
   ): Promise<IBugWithDeveloper | null> {
     const bug = await Bug.create({
       title: data.title,
@@ -24,6 +26,7 @@ export class bugHandler {
       developerId: data.developerId,
       sqaId: userId,
       screenshot: imgurl,
+      imagePublicId: imagePublicId
     });
     const newBug: IBugWithDeveloper | null = await this.getSingleBug(bug.bugId);
     return newBug;
@@ -89,22 +92,18 @@ export class bugHandler {
   static async updateBug(
     bug: Partial<Bug>,
     imgurl: string,
+    imageId: string,
     bugId: number,
   ): Promise<IBugWithDeveloper | null> {
     const data: any = {};
     if (imgurl && imgurl.length !== 0) {
       data.screenshot = imgurl;
+      data.imagePublicId = imageId
       const bug = await this.getbugByID(bugId);
-      const oldScreeenShoot = bug?.screenshot;
-      if (oldScreeenShoot && oldScreeenShoot !== "null") {
-        console.log("old image is :: ", oldScreeenShoot);
-        const oldScreenShootPath = path.join(__dirname, "../../public", oldScreeenShoot);
-        try {
-          await fs.unlink(oldScreenShootPath);
-          console.log("old screenShoot deleted successfully", oldScreeenShoot);
-        } catch (error) {
-          console.log("error happend during deleting old screenShoot :: ", error);
-        }
+      const imagePublicId = bug?.imagePublicId
+      if(imagePublicId){
+        const response = await CloudinaryService.deleteImage(imagePublicId)
+        console.log('old screenShoot deleted :: ' , response)
       }
     }
     if (bug.title) {

@@ -11,13 +11,12 @@ export class UserController {
     try {
       const users: User[] | null = await userHandler.getAllUsers();
       return res.status(200).json({
-        success: true,
         count: users.length,
         message: `total number of users are ${users.length}`,
         users: users,
       });
     } catch (error) {
-      console.log('error in creating user profile :: ' , error)
+      console.log("error in creating user profile :: ", error);
       next(error);
     }
   }
@@ -34,7 +33,7 @@ export class UserController {
         },
       });
     } catch (error) {
-      console.log('error in getting user profile :: ' , error)
+      console.log("error in getting user profile :: ", error);
       next(error);
     }
   }
@@ -64,11 +63,18 @@ export class UserController {
     next: NextFunction,
   ) {
     try {
-      let imageUrl = null;
+      let imageUrl = "";
+      let imagePublicId = "";
       if (req.file) {
-        imageUrl = `/uploads/users/${req.file.filename}`;
+        imageUrl = req.file.path;
+        imagePublicId = req.file.filename;
       }
-      await UserManager.updateUser(req.body, Number(req.user?.id), imageUrl);
+      await UserManager.updateUser(
+        req.body,
+        Number(req.user?.id),
+        imageUrl,
+        imagePublicId,
+      );
       return res.status(successCodes.OK).json({
         message: successMessages.MESSAGES.UPDATED,
       });
@@ -77,5 +83,4 @@ export class UserController {
       next(error);
     }
   }
-
 }

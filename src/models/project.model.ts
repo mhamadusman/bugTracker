@@ -18,6 +18,7 @@ export class Project extends Model<
   declare name: string;
   declare description: string;
   declare image?: CreationOptional<string>; 
+  declare imagePublicId: CreationOptional<string | null> 
 }
 Project.init(
   {
@@ -25,6 +26,10 @@ Project.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+    },
+    imagePublicId:{
+      type: DataTypes.STRING,
+      allowNull: true, 
     },
 
     name: {
