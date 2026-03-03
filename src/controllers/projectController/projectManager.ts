@@ -1,9 +1,8 @@
 import { createProject, IProjects, project } from "../../types/types";
 import { ProjectUils } from "../../utilities/projectUtils";
 import { ProjectHandler } from "../../handlers/projectHandlers";
-import { UserUtil } from "../../utilities/userUtil";
 import { userHandler } from "../../handlers/userHandler";
-import { User } from "../../models/users.model";
+
 export class projectManager {
   static async createProject(
     data: createProject,

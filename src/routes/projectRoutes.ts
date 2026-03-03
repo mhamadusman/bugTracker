@@ -9,7 +9,7 @@ router.post(
   Authentication.authenticate,
   Authentication.autorizeManagerRole,
   uploadProjectImage.single("image"),
-  ProjectController.createProjct,
+  ProjectController.createProject,
 );
 router.get("/", Authentication.authenticate, ProjectController.getProjects);
 router.delete(

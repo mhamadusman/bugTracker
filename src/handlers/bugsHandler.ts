@@ -5,8 +5,7 @@ import { createBug, IBugs, IBugState } from "../types/types";
 import { User } from "../models/association";
 import { Op } from "sequelize";
 import { IBugWithDeveloper } from "../types/types";
-import path from "path";
-import fs from "fs/promises";
+
 import { CloudinaryService } from "../services/cloudinarySerevice";
 
 export class bugHandler {

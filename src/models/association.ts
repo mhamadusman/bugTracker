@@ -22,20 +22,40 @@ export function setupAssociations() {
   });
 
   Project.belongsToMany(User, {
-    through: UserProjects,
-    foreignKey: "projectId",
-    otherKey: "userId",
-    as: "developers",
-    scope: { userType: "developer" },
-  });
+  through: {
+    model: UserProjects,
+    scope: { userType: 'developer' } 
+  },
+  foreignKey: "projectId",
+  otherKey: "userId",
+  as: "developers",
+});
 
-  Project.belongsToMany(User, {
-    through: UserProjects,
-    foreignKey: "projectId",
-    otherKey: "userId",
-    as: "sqas",
-    scope: { userType: "sqa" },
-  });
+// For SQAs
+Project.belongsToMany(User, {
+  through: {
+    model: UserProjects,
+    scope: { userType: 'sqa' } 
+  },
+  foreignKey: "projectId",
+  otherKey: "userId",
+  as: "sqas",
+});
+  // Project.belongsToMany(User, {
+  //   through: UserProjects,
+  //   foreignKey: "projectId",
+  //   otherKey: "userId",
+  //   as: "developers",
+  //   scope: { userType: "developer" },
+  // });
+
+  // Project.belongsToMany(User, {
+  //   through: UserProjects,
+  //   foreignKey: "projectId",
+  //   otherKey: "userId",
+  //   as: "sqas",
+  //   scope: { userType: "sqa" },
+  // });
 
   Project.hasMany(Bug, { foreignKey: "projectId", as: "bugs" });
   Bug.belongsTo(Project, { foreignKey: "projectId", as: "project" });

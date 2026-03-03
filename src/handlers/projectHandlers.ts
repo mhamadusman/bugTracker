@@ -12,8 +12,7 @@ import { IProjects } from "../types/types";
 import { IProjectDTO } from "../types/types";
 import { Op, literal } from "sequelize";
 import { CloudinaryService } from "../services/cloudinarySerevice";
-import path from "path";
-import fs from "fs/promises";
+
 export class ProjectHandler {
   static async createProject(
     data: createProject,
@@ -291,6 +290,30 @@ export class ProjectHandler {
   static async validateProjectId(projectId: number): Promise<Project | null> {
     const project = await Project.findByPk(projectId);
     return project;
+  }
+
+  static async validateProjectwithAssignedDevQa(
+    projectId: number,
+    alldevQaIds: number[],
+  ) {
+    const project = Project.findOne({
+      where: { projectId: projectId },
+      include: [
+        {
+          model: User,
+          as: "developers",
+          where: { id: alldevQaIds },
+          required: false,
+        },
+        {
+          model: User,
+          as: "sqas",
+          where: { id: alldevQaIds },
+          required: false,
+        },
+      ],
+    });
+    return project
   }
   static async getDevelopers(projectId: number): Promise<User[]> {
     const project: any = await Project.findByPk(projectId, {

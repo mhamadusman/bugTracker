@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import cloudinary from "../../config/cloudinary";
 
 import {
   createProject,
@@ -23,7 +22,7 @@ declare global {
 }
 
 export class ProjectController {
-  static async createProjct(
+  static async createProject(
     req: Request<{}, project, createProject>,
     res: Response<{ message: string }>,
     next: NextFunction,
@@ -37,10 +36,7 @@ export class ProjectController {
     }
 
       let { developerIds, sqaIds, name, description, managerName } = req.body;
-      const allRecepient = await projectManager.getAllRecepientEmails(
-        sqaIds,
-        developerIds,
-      );
+      
 
       const project = await projectManager.createProject(
         req.body,
@@ -48,12 +44,16 @@ export class ProjectController {
         imagePublicId,
         Number(req.user?.id),
       );
-      emailService.notifyNewProjectCreation(
-        allRecepient,
-        managerName,
-        name,
-        description,
-      );
+      // const allRecepient = await projectManager.getAllRecepientEmails(
+      //   sqaIds,
+      //   developerIds,
+      // );
+      // emailService.notifyNewProjectCreation(
+      //   allRecepient,
+      //   managerName,
+      //   name,
+      //   description,
+      // );
 
       return res.status(errorCodes.CREATED).json({
         message: successMessages.MESSAGES.CREATED,

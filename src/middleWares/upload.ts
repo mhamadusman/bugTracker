@@ -13,7 +13,6 @@ const generateSafeName = (file: Express.Multer.File) => {
 };
 
 const createStorage = (folderName: string) => {
-   console.log('inside create storage')
   return new CloudinaryStorage({
     cloudinary: cloudinary,
     params: async (req, file) => {

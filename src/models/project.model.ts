@@ -6,6 +6,7 @@ import {
   CreationOptional,
   DataTypes,
   ForeignKey,
+  BelongsToManySetAssociationsMixin
 } from "sequelize";
 import { User } from "./users.model";
 
@@ -19,6 +20,11 @@ export class Project extends Model<
   declare description: string;
   declare image?: CreationOptional<string>; 
   declare imagePublicId: CreationOptional<string | null> 
+  declare developers?: User[]
+  declare sqas?: User[]
+  declare setDevelopers: BelongsToManySetAssociationsMixin<User, number>;
+  declare setSqas: BelongsToManySetAssociationsMixin<User, number>;
+
 }
 Project.init(
   {
