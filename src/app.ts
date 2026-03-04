@@ -4,10 +4,10 @@ import { Request, Response, NextFunction } from "express";
 import express from "express";
 import cookieParser from "cookie-parser";
 import { Exception } from "./helpers/exception";
-import { authRoutes } from "./routes/authRoutes";
+import { authRoutes } from "./routes/authRoutes.js";
 import { router as projectRoutes } from "./routes/projectRoutes";
 import { router as userRoutes } from "./routes/userRoutes";
-import { errorCodes } from "./constants/errorCodes";
+import { errorCodes } from "./constants/errorCodes.js";
 import { errorMessages } from "./constants/errorMessages";
 import { router as bugRoutes } from "./routes/bugRoutes";
 
