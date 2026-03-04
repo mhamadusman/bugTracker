@@ -1,7 +1,17 @@
-import { createProject, IProjects, project } from "../../types/types";
+import {
+  createProject,
+  IProjects,
+  project,
+  ValidationError,
+} from "../../types/types";
 import { ProjectUils } from "../../utilities/projectUtils";
 import { ProjectHandler } from "../../handlers/projectHandlers";
 import { userHandler } from "../../handlers/userHandler";
+import { validIdSchema } from "../../schemas/validIdSchema";
+import {
+  ProjectErrorMessages,
+  ProjectFields,
+} from "../../constants/ProjectErrorMessages";
 
 export class projectManager {
   static async createProject(
@@ -9,7 +19,9 @@ export class projectManager {
     imgurl: string,
     imagePublicId: string,
     managerId: number,
+    userType: string,
   ): Promise<{ projectId: number; image: string | undefined }> {
+    ProjectUils.validateManagerRole(userType);
     await ProjectUils.validateProjectData(data);
     const newProject = await ProjectHandler.createProject(
       data,
@@ -65,10 +77,15 @@ export class projectManager {
     projectData: createProject,
     managerId: number,
     imgURL: string,
-    imagePublicId: string
+    imagePublicId: string,
   ) {
     await ProjectUils.validateProjectData(projectData, managerId, projectId);
-    await ProjectHandler.editProject(projectId, projectData, imgURL , imagePublicId);
+    await ProjectHandler.editProject(
+      projectId,
+      projectData,
+      imgURL,
+      imagePublicId,
+    );
   }
   static async validateProjectId(id: number) {
     await ProjectUils.validateProjectId(id);

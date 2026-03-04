@@ -10,6 +10,7 @@ import {
   ProjectErrorMessages,
   ProjectFields,
 } from "../constants/ProjectErrorMessages";
+import { userHandler } from "../handlers/userHandler";
 export class ProjectUils {
   static async validateProjectData(
     data: createProject,
@@ -26,7 +27,6 @@ export class ProjectUils {
         });
       });
     }
-
     //business logic
     if (result.success && projectId) {
       const result = validIdSchema.safeParse(projectId);
@@ -36,16 +36,8 @@ export class ProjectUils {
           message: ProjectErrorMessages.INVALID_PROJECT_ID,
         });
       } else {
-        const { sqaIds, developerIds } = data;
-        const sqaIdsInNumber = sqaIds.split(",").map((id) => Number(id.trim()));
-        const developerIdsInNum = developerIds
-          .split(",")
-          .map((id) => Number(id.trim()));
-        const allIds = [...developerIdsInNum, ...sqaIdsInNumber];
-        const project = await ProjectHandler.validateProjectwithAssignedDevQa(
-          projectId,
-          allIds,
-        );
+        //db validation
+        const project = await ProjectHandler.validateProjectId(projectId);
         if (!project) {
           errors.push({
             field: ProjectFields.PROJECT_ID,
@@ -56,16 +48,31 @@ export class ProjectUils {
             field: ProjectFields.MANAGER_ID,
             message: ProjectErrorMessages.PERMISSION_DENIED,
           });
-        }else if(project.developers?.length  !== developerIds.length ){
+        } else {
+          const { sqaIds, developerIds } = data;
+          const sqaIdsInNumber = sqaIds
+            .split(",")
+            .map((id) => Number(id.trim()));
+          const developerIdsInNum = developerIds
+            .split(",")
+            .map((id) => Number(id.trim()));
+          const { devCount, sqaCount } =
+            await userHandler.getValidatedUserCounts(
+              developerIdsInNum,
+              sqaIdsInNumber,
+            );
+          if (devCount !== developerIdsInNum.length) {
             errors.push({
               field: ProjectFields.DEVELOPER_IDS,
-              message: ProjectErrorMessages.INVALID_DEVELOPER_IDS
-            })
-        }else if(project.sqas?.length !== sqaIdsInNumber.length){
-          errors.push({
-            field: ProjectFields.SQA_IDS,
-            message: ProjectErrorMessages.INVALID_SQA_IDS
-          })
+              message: ProjectErrorMessages.INVALID_DEVELOPER_IDS,
+            });
+          }
+          if (sqaCount !== sqaIdsInNumber.length) {
+            errors.push({
+              field: ProjectFields.SQA_IDS,
+              message: ProjectErrorMessages.INVALID_SQA_IDS,
+            });
+          }
         }
       }
     }
@@ -75,24 +82,29 @@ export class ProjectUils {
   }
   //validate manager and project is associated or not
   static async validateManagerAndProject(userId: number, projectId: number) {
+    const errors: ValidationError[] = [];
     const result = validIdSchema.safeParse(projectId);
     if (result.success) {
       const project = await ProjectHandler.getProjectUsingId(projectId);
       if (!project) {
-        throw new Exception(
-          UserErrorMessages.PROJECT_NOT_FOUND,
-          errorCodes.BAD_REQUEST,
-        );
-      }
-      if (project.managerId !== userId) {
-        throw new Exception(
-          UserErrorMessages.ACCESS_DENIED,
-          errorCodes.UNAUTHORIZED,
-        );
+        errors.push({
+          field: ProjectFields.PROJECT_ID,
+          message: ProjectErrorMessages.INVALID_PROJECT_ID,
+        });
+      } else if (project?.managerId !== userId) {
+        errors.push({
+          field: ProjectFields.MANAGER_ID,
+          message: ProjectErrorMessages.PERMISSION_DENIED,
+        });
       }
     } else {
-      const error = result.error.issues[0].message;
-      throw new Exception(error, errorCodes.BAD_REQUEST);
+      errors.push({
+        field: ProjectFields.PROJECT_ID,
+        message: ProjectErrorMessages.INVALID_PROJECT_ID,
+      });
+    }
+    if (errors.length > 0) {
+      throw new Exception(errors, errorCodes.BAD_REQUEST);
     }
   }
   static async validateProjectId(projectId: number) {
@@ -106,6 +118,19 @@ export class ProjectUils {
     } else {
       const error = result.error.issues[0].message;
       throw new Exception(error, errorCodes.BAD_REQUEST);
+    }
+  }
+  static validateManagerRole(userType: string) {
+    const errors: ValidationError[] = [];
+    if (userType !== "manager") {
+      errors.push({
+        field: ProjectFields.MANAGER_ROLE,
+        message: ProjectErrorMessages.PERMISSION_DENIED,
+      });
+    }
+    if (errors.length > 0) {
+      console.log("error occurrd in validation manager role");
+      throw new Exception(errors, errorCodes.UNAUTHORIZED);
     }
   }
 }

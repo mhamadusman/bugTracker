@@ -1,5 +1,5 @@
 import { User } from "../models/association";
-import { Op } from "sequelize";
+import { Op, fn, col, literal } from "sequelize";
 import { createUser, updateUser } from "../types/types";
 import { CloudinaryService } from "../services/cloudinarySerevice";
 export class userHandler {
@@ -47,31 +47,31 @@ export class userHandler {
 
   static async getdevAndQaEmails(ids: number[]): Promise<User[] | []> {
     const users = await User.findAll({
-      attributes: ['email'],
+      attributes: ["email"],
       where: {
         id: {
           [Op.in]: ids,
         },
       },
-      raw: true, 
+      raw: true,
     });
     return users;
-}
-  
+  }
+
   static async updateUser(
     data: updateUser,
     password: string,
     image: string | null,
     id: number,
-    imagePublicId: string | null
+    imagePublicId: string | null,
   ) {
     const updateData: any = {
       name: data.name,
       phoneNumber: data.phoneNumber,
       email: data.email,
     };
-    if(imagePublicId){
-      updateData.imagePublicId = imagePublicId
+    if (imagePublicId) {
+      updateData.imagePublicId = imagePublicId;
     }
     if (password.length > 0) {
       updateData.password = password;
@@ -79,10 +79,10 @@ export class userHandler {
     if (image) {
       updateData.image = image;
     }
-    const user = await this.findById(id)
-    if(user?.imagePublicId && imagePublicId){
-      const response = await CloudinaryService.deleteImage(user.imagePublicId)
-      console.log('deleted old profile :: ' , response)
+    const user = await this.findById(id);
+    if (user?.imagePublicId && imagePublicId) {
+      const response = await CloudinaryService.deleteImage(user.imagePublicId);
+      console.log("deleted old profile :: ", response);
     }
     await User.update(updateData, { where: { id } });
   }
@@ -113,6 +113,29 @@ export class userHandler {
       },
     });
     return users;
+  }
+  static async getValidatedUserCounts(devIds: number[], sqaIds: number[]) {
+    const allIds = [...devIds , ...sqaIds];
+    const result: any = await User.findAll({
+      attributes: [
+        [fn("COUNT", col("id")), "totalFound"],
+        [
+          literal(`COUNT(CASE WHEN "userType" = 'developer' THEN 1 END)`),
+          "devCount",
+        ],
+      ],
+      where: {
+        id: { [Op.in]: allIds },
+        userType: { [Op.in]: ["developer", "sqa"] },
+      },
+      raw: true,
+    });
+
+    const totalFound = parseInt(result[0]?.totalFound || "0");
+    const devCount = parseInt(result[0]?.devCount || "0");
+    const sqaCount = totalFound - devCount;
+
+    return { devCount, sqaCount };
   }
   static async invalidateRefreshToken(userId: number, refreshToken: string) {
     const invalidRefreshToken = null;

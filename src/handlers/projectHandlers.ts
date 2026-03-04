@@ -292,6 +292,7 @@ export class ProjectHandler {
     return project;
   }
 
+  //remove it
   static async validateProjectwithAssignedDevQa(
     projectId: number,
     alldevQaIds: number[],

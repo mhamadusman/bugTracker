@@ -29,20 +29,20 @@ export class ProjectController {
   ) {
     try {
       let imgurl = "";
-      let imagePublicId  = "";
+      let imagePublicId = "";
       if (req.file) {
-      imgurl = req.file.path; 
-      imagePublicId = req.file.filename;
-    }
+        imgurl = req.file.path;
+        imagePublicId = req.file.filename;
+      }
 
       let { developerIds, sqaIds, name, description, managerName } = req.body;
-      
 
       const project = await projectManager.createProject(
         req.body,
         String(imgurl),
         imagePublicId,
         Number(req.user?.id),
+        String(req.user?.userType),
       );
       // const allRecepient = await projectManager.getAllRecepientEmails(
       //   sqaIds,
@@ -59,10 +59,7 @@ export class ProjectController {
         message: successMessages.MESSAGES.CREATED,
       });
     } catch (error: any) {
-      console.log(
-        "error ocured in projectController.createProject",
-        error,
-      );
+      console.log("error ocured in projectController.createProject", error);
       next(error);
     }
   }
@@ -105,7 +102,7 @@ export class ProjectController {
     try {
       const managerId = Number(req.user?.id);
       await projectManager.deleteProjectById(projectId, managerId);
-      return res.status(200).json({
+      return res.status(successCodes.OK).json({
         message: successMessages.MESSAGES.DELETED,
       });
     } catch (error) {
@@ -123,13 +120,20 @@ export class ProjectController {
     const managerId: number = Number(req.user?.id);
     try {
       let imgurl = "";
-      let imagePublicId  = "";
+      let imagePublicId = "";
       if (req.file) {
-      imgurl = req.file.path; 
-      imagePublicId = req.file.filename;
-    }
+        imgurl = req.file.path;
+        imagePublicId = req.file.filename;
+      }
 
-      await projectManager.editProject(projectId, req.body, managerId, imgurl , imagePublicId);
+      await projectManager.editProject(
+        projectId,
+        req.body,
+        managerId,
+        imgurl,
+        imagePublicId,
+      );
+
       return res.status(successCodes.OK).json({
         message: successMessages.MESSAGES.UPDATED,
       });

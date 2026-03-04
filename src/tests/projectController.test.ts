@@ -8,6 +8,7 @@ import {
 import { successCodes } from "../constants/sucessCodes";
 import { errorCodes } from "../constants/errorCodes";
 import { successMessages } from "../constants/sucessMessages";
+import { status } from '../models/bug.model';
 
 describe("Project Controller", () => {
   let manager: any;
@@ -59,7 +60,7 @@ describe("Project Controller", () => {
           sqaIds: `${sqa.id}`,
           description: "this is the des ",
         },
-        user: { id: manager.id },
+        user: { id: manager.id, userType: "manager" },
         file: { path: "", filename: "" },
       } as any;
 
@@ -75,13 +76,44 @@ describe("Project Controller", () => {
       });
     });
 
+    it("should throw error for access denied during project creation ", async () => {
+      const req = {
+        body: {
+          name: "project one",
+          developerIds: `${dev1.id}`,
+          sqaIds: `${sqa.id}`,
+          description: "this is the des ",
+        },
+        user: { id: manager.id, userType: "developer" },
+        file: { path: "", filename: "" },
+      } as any;
+
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const next = jest.fn();
+      await ProjectController.createProject(req, res, next);
+      expect(next).toHaveBeenCalled();
+      const passedError = next.mock.calls[0][0];
+      expect(passedError.statusCode).toBe(errorCodes.UNAUTHORIZED);
+      expect(passedError.errors).toEqual(
+        expect.arrayContaining([
+          {
+            field: ProjectFields.MANAGER_ROLE,
+            message: ProjectErrorMessages.PERMISSION_DENIED,
+          },
+        ]),
+      );
+    });
+
     it("should throw error for name filed missing and developerIds ", async () => {
       const req = {
         body: {
           sqaIds: `${sqa.id}`,
           description: "this is the des ",
         },
-        user: { id: manager.id },
+        user: { id: manager.id, userType: "manager" },
         file: { path: "", filename: "" },
       } as any;
 
@@ -116,7 +148,7 @@ describe("Project Controller", () => {
           developerIds: "abc, 2, c",
           description: "this is the des ",
         },
-        user: { id: manager.id },
+        user: { id: manager.id, userType: "manager" },
         file: { path: "", filename: "" },
       } as any;
 
@@ -147,7 +179,37 @@ describe("Project Controller", () => {
           developerIds: `${dev1.id}`,
           description: "this is the des ",
         },
-        user: { id: manager.id },
+        user: { id: manager.id, userType: "manager" },
+        file: { path: "", filename: "" },
+      } as any;
+
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const next = jest.fn();
+      await ProjectController.createProject(req, res, next);
+      expect(next).toHaveBeenCalled();
+      const passedError = next.mock.calls[0][0];
+      expect(passedError.statusCode).toBe(errorCodes.BAD_REQUEST);
+      expect(passedError.errors).toEqual(
+        expect.arrayContaining([
+          {
+            field: ProjectFields.SQA_IDS,
+            message: ProjectErrorMessages.INVALID_SQA_IDS,
+          },
+        ]),
+      );
+    });
+    it("should throw error for invalid data types like for sqaid(abc , 2, c) ", async () => {
+      const req = {
+        body: {
+          name: "project one",
+          sqaIds: `abc, 2,c`,
+          developerIds: `${dev1.id}`,
+          description: "this is the des ",
+        },
+        user: { id: manager.id, userType: "manager" },
         file: { path: "", filename: "" },
       } as any;
 
@@ -172,40 +234,181 @@ describe("Project Controller", () => {
   });
 
   describe("validate edit project cases", () => {
-    let project: any 
+    let project: any;
     beforeEach(async () => {
-        project = await Project.create({
+      project = await Project.create({
         name: "project name",
         managerId: manager.id,
         image: "",
         imagePublicId: "",
         description: "this is description",
       });
-      await project.setDevelopers([dev1 , dev2]);
-      await project.setSqas([sqa.id]);
+      await project.setDevelopers([dev1, dev2]);
+      await project.setSqas([sqa]);
     });
     it("should edit project successfully with valid details", async () => {
       const req = {
         body: {
           name: "project one",
-          developerIds: `${dev1.id} , ${dev2.id}`,
+          developerIds: `${dev1.id},${dev2.id}`,
           sqaIds: `${sqa.id}`,
           description: "this is updated description ",
-        }as any,
-        
-        user: { id: manager.id },
-        params: { projectId: project.projectId }
+        } as any,
+
+        user: { id: manager.id, userType: "manager" },
+        params: { projectId: project.projectId },
       };
       const res = {
         status: jest.fn().mockReturnThis(),
         json: jest.fn(),
       } as any;
-      const next = jest.fn()
-      await ProjectController.editProject(req as any  , res , next)
+      const next = jest.fn();
+      await ProjectController.editProject(req as any, res, next);
       expect(res.status).toHaveBeenCalledWith(successCodes.OK);
-      expect(res.json).toEqual({
-        message: successMessages.MESSAGES.UPDATED
+      expect(res.json).toHaveBeenCalledWith({
+        message: successMessages.MESSAGES.UPDATED,
+      });
+    });
+    it("should throw error on invalid developer ids during edit project ", async () => {
+      const req = {
+        body: {
+          name: "project one",
+          developerIds: `333,444`,
+          sqaIds: `${sqa.id}`,
+          description: "this is updated description ",
+        } as any,
+
+        user: { id: manager.id, userType: "manager" },
+        params: { projectId: project.projectId },
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const next = jest.fn();
+      await ProjectController.editProject(req as any, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const passedError = next.mock.calls[0][0];
+      expect(passedError.statusCode).toBe(errorCodes.BAD_REQUEST);
+      expect(passedError.errors).toEqual(
+        expect.arrayContaining([
+          {
+            field: ProjectFields.DEVELOPER_IDS,
+            message: ProjectErrorMessages.INVALID_DEVELOPER_IDS,
+          },
+        ]),
+      );
+    });
+
+    it("should throw error access denied for invalid manager id  during edit project ", async () => {
+      const req = {
+        body: {
+          name: "project one",
+          developerIds: `${dev1.id},${dev2.id}`,
+          sqaIds: `${sqa.id}`,
+          description: "this is updated description ",
+        } as any,
+        user: { id: 12, userType: "manager" },
+        params: { projectId: project.projectId },
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const next = jest.fn();
+      await ProjectController.editProject(req as any, res, next);
+
+      expect(next).toHaveBeenCalled();
+      const passedError = next.mock.calls[0][0];
+      expect(passedError.statusCode).toBe(errorCodes.BAD_REQUEST);
+      expect(passedError.errors).toEqual(
+        expect.arrayContaining([
+          {
+            field: ProjectFields.MANAGER_ID,
+            message: ProjectErrorMessages.PERMISSION_DENIED,
+          },
+        ]),
+      );
+    });
+  });
+  describe("Delete Project", () => {
+    let project: any;
+    beforeEach(async () => {
+      project = await Project.create({
+        name: "project name",
+        managerId: manager.id,
+        image: "",
+        imagePublicId: "",
+        description: "this is description",
+      });
+      await project.setDevelopers([dev1, dev2]);
+      await project.setSqas([sqa]);
+    });
+
+    it("should delete project successfully ", async () => {
+      const req = {
+        user: { id: manager.id, userType: "manager" },
+        params: { projectId: project.projectId },
+      };
+       const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const next  = jest.fn()
+      await ProjectController.deleteProjectById(req as any , res , next)
+      expect(res.status).toHaveBeenCalledWith(successCodes.OK);
+      expect(res.json).toHaveBeenCalledWith({
+        message: successMessages.MESSAGES.DELETED
       })
-    })
-  })
-})
+    });
+
+    it("should throw error on invalid id like (abc)", async () => {
+      const req = {
+        user: { id: manager.id, userType: "manager" },
+        params: { projectId: 'abc' },
+      };
+       const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const next  = jest.fn()
+      await ProjectController.deleteProjectById(req as any , res , next)
+      expect(next).toHaveBeenCalled()
+      const passedError = next.mock.calls[0][0];
+      expect(passedError.statusCode).toBe(errorCodes.BAD_REQUEST);
+      expect(passedError.errors).toEqual(
+        expect.arrayContaining([
+          {
+            field: ProjectFields.PROJECT_ID,
+            message: ProjectErrorMessages.INVALID_PROJECT_ID,
+          },
+        ]),
+      );
+    });
+
+    it("should throw error access denied for different manger id ", async () => {
+      const req = {
+        user: { id: 999, userType: "manager" },
+        params: { projectId: project.projectId },
+      };
+       const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+      const next  = jest.fn()
+      await ProjectController.deleteProjectById(req as any , res , next)
+      expect(next).toHaveBeenCalled()
+      const passedError = next.mock.calls[0][0];
+      expect(passedError.statusCode).toBe(errorCodes.BAD_REQUEST);
+      expect(passedError.errors).toEqual(
+        expect.arrayContaining([
+          {
+            field: ProjectFields.MANAGER_ID,
+            message: ProjectErrorMessages.PERMISSION_DENIED,
+          },
+        ]),
+      );
+    });
+  });
+});

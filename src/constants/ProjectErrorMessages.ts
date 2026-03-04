@@ -18,6 +18,7 @@ export const ProjectFields = {
     PROJECT_ID: "projectId",
     DESCRIPTION: "description",
     MANAGER_ID: "managerId",
+    MANAGER_ROLE: 'role'
     
 
  
