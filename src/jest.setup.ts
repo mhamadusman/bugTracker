@@ -1,5 +1,5 @@
-import sequelize from "./src/config/database";
-import { User, Project, Bug, UserProjects } from './src/models/association'
+import sequelize from "./config/database";
+import {User , Project , UserProjects , Bug} from './models/association'
 
 
 beforeAll(async () => {

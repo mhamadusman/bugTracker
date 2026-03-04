@@ -1,13 +1,13 @@
-import { User } from "../src/models/association";
-import { Project } from "../src/models/association";
-import { ProjectController } from "../src/controllers/projectController/projectController";
+import { User } from "../models/association";
+import { Project } from "../models/association";
+import { ProjectController } from "../controllers/projectController/projectController";
 import {
   ProjectFields,
   ProjectErrorMessages,
-} from "../src/constants/ProjectErrorMessages";
-import { successCodes } from "../src/constants/sucessCodes";
-import { errorCodes } from "../src/constants/errorCodes";
-import { successMessages } from "../src/constants/sucessMessages";
+} from "../constants/ProjectErrorMessages";
+import { successCodes } from "../constants/sucessCodes";
+import { errorCodes } from "../constants/errorCodes";
+import { successMessages } from "../constants/sucessMessages";
 
 describe("Project Controller", () => {
   let manager: any;

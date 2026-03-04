@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "preinstall": "npm config set legacy-peer-deps true",
-    "test": "jest",
+    "test": "jest --config src/config/jest.config.js",
     "test:watch": "jest --watchAll"
   },
   "repository": {
