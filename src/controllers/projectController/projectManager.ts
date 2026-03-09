@@ -1,17 +1,11 @@
 import {
   createProject,
   IProjects,
-  project,
-  ValidationError,
 } from "../../types/types";
 import { ProjectUils } from "../../utilities/projectUtils";
 import { ProjectHandler } from "../../handlers/projectHandlers";
 import { userHandler } from "../../handlers/userHandler";
-import { validIdSchema } from "../../schemas/validIdSchema";
-import {
-  ProjectErrorMessages,
-  ProjectFields,
-} from "../../constants/ProjectErrorMessages";
+
 
 export class projectManager {
   static async createProject(
@@ -56,20 +50,9 @@ export class projectManager {
     const users = await userHandler.getdevAndQaEmails(allIds);
     return users.map((user: any) => user.email).filter(Boolean);
   }
-  // static async validateUser(id: number) {
-  //   console.log(
-  //     `inside validate user function in projectManager and typeof id is ${typeof id}`,
-  //   );
-  //   await UserUtil.findUserByid(id);
-  // }
-  // static async validateManagerToDeleteProject(
-  //   userId: number,
-  //   projectId: number,
-  // ) {
-  //   await ProjectUils.validateManagerAndProject(userId, projectId);
-  // }
+
   static async deleteProjectById(projectId: number, managerId: number) {
-    await ProjectUils.validateManagerAndProject(managerId, projectId);
+    await ProjectUils.validateManagerProjectRelation(managerId, projectId);
     await ProjectHandler.deleteProjectUsingId(projectId);
   }
   static async editProject(

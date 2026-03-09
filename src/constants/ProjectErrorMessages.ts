@@ -1,5 +1,6 @@
 export const ProjectErrorMessages = Object.freeze({
-  INVALID_PROJECT_ID: "Project not found",
+  PROJECT_NOT_FOUND: "Project not found",
+  INVALID_ID_FORMAT: "Project ID must be a positive whole number.",
   PERMISSION_DENIED: "You do not have permission to modify this project",
   NAME_REQUIRED: "Project name is required",
   SQA_REQUIRED: "At least one SQA must be assigned",

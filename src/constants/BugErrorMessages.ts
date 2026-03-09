@@ -6,6 +6,8 @@ export const BugErrorMessages = Object.freeze({
   DEVELOPER_REQUIRED: "A Developer must be assigned to the bug",
   DUPLICATE_TITLE: "Bug title must be unique within the project scope",
   INVALID_PROJECT_ID: "Create bug or task on a valid project",
+  BUG_NOT_FOUND: "Bug not found"
+  
 });
 
 

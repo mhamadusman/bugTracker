@@ -96,14 +96,8 @@ describe("Project Controller", () => {
       await ProjectController.createProject(req, res, next);
       expect(next).toHaveBeenCalled();
       const passedError = next.mock.calls[0][0];
-      expect(passedError.statusCode).toBe(errorCodes.UNAUTHORIZED);
-      expect(passedError.errors).toEqual(
-        expect.arrayContaining([
-          {
-            field: ProjectFields.MANAGER_ROLE,
-            message: ProjectErrorMessages.PERMISSION_DENIED,
-          },
-        ]),
+      expect(passedError.statusCode).toBe(errorCodes.FORBIDDEN);
+      expect(passedError.message).toBe(ProjectErrorMessages.PERMISSION_DENIED
       );
     });
 
@@ -321,15 +315,8 @@ describe("Project Controller", () => {
 
       expect(next).toHaveBeenCalled();
       const passedError = next.mock.calls[0][0];
-      expect(passedError.statusCode).toBe(errorCodes.BAD_REQUEST);
-      expect(passedError.errors).toEqual(
-        expect.arrayContaining([
-          {
-            field: ProjectFields.MANAGER_ID,
-            message: ProjectErrorMessages.PERMISSION_DENIED,
-          },
-        ]),
-      );
+      expect(passedError.statusCode).toBe(errorCodes.FORBIDDEN);
+      expect(passedError.message).toEqual(ProjectErrorMessages.PERMISSION_DENIED);
     });
   });
   describe("Delete Project", () => {
@@ -377,13 +364,8 @@ describe("Project Controller", () => {
       expect(next).toHaveBeenCalled()
       const passedError = next.mock.calls[0][0];
       expect(passedError.statusCode).toBe(errorCodes.BAD_REQUEST);
-      expect(passedError.errors).toEqual(
-        expect.arrayContaining([
-          {
-            field: ProjectFields.PROJECT_ID,
-            message: ProjectErrorMessages.INVALID_PROJECT_ID,
-          },
-        ]),
+      expect(passedError.message).toEqual(
+        ProjectErrorMessages.INVALID_ID_FORMAT
       );
     });
 
@@ -400,14 +382,9 @@ describe("Project Controller", () => {
       await ProjectController.deleteProjectById(req as any , res , next)
       expect(next).toHaveBeenCalled()
       const passedError = next.mock.calls[0][0];
-      expect(passedError.statusCode).toBe(errorCodes.BAD_REQUEST);
-      expect(passedError.errors).toEqual(
-        expect.arrayContaining([
-          {
-            field: ProjectFields.MANAGER_ID,
-            message: ProjectErrorMessages.PERMISSION_DENIED,
-          },
-        ]),
+      expect(passedError.statusCode).toBe(errorCodes.FORBIDDEN);
+      expect(passedError.message).toEqual(
+         ProjectErrorMessages.PERMISSION_DENIED
       );
     });
   });

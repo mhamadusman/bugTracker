@@ -2,7 +2,7 @@ import sequelize from "../config/database";
 import { User } from "../models/association";
 import { UserProjects } from "../models/association";
 import { Project } from "../models/association";
-import { createProject, project } from "../types/types";
+import { createProject } from "../types/types";
 import { AssignedUserTypes } from "../types/types";
 import { Exception } from "../helpers/exception";
 import { errorMessages } from "../constants/errorMessages";
@@ -290,31 +290,6 @@ export class ProjectHandler {
   static async validateProjectId(projectId: number): Promise<Project | null> {
     const project = await Project.findByPk(projectId);
     return project;
-  }
-
-  //remove it
-  static async validateProjectwithAssignedDevQa(
-    projectId: number,
-    alldevQaIds: number[],
-  ) {
-    const project = Project.findOne({
-      where: { projectId: projectId },
-      include: [
-        {
-          model: User,
-          as: "developers",
-          where: { id: alldevQaIds },
-          required: false,
-        },
-        {
-          model: User,
-          as: "sqas",
-          where: { id: alldevQaIds },
-          required: false,
-        },
-      ],
-    });
-    return project
   }
   static async getDevelopers(projectId: number): Promise<User[]> {
     const project: any = await Project.findByPk(projectId, {

@@ -1,19 +1,15 @@
 import {
   createBug,
   IBugs,
-  IBugState,
   IBugWithDeveloper,
-  project,
-  updateBug,
 } from "../../types/types";
 import { Bug, status } from "../../models/bug.model";
 import { bugHandler } from "../../handlers/bugsHandler";
 import { BugUtil } from "../../utilities/bugUtils";
 import { ProjectUils } from "../../utilities/projectUtils";
 import { Exception } from "../../helpers/exception";
-import { UserErrorMessages } from "../../constants/userErrorMessag";
 import { errorCodes } from "../../constants/errorCodes";
-import { projectManager } from "../projectController/projectManager";
+import { BugErrorMessages } from '../../constants/BugErrorMessages';
 
 export class BugManagr {
   static async createBug(
@@ -62,8 +58,7 @@ export class BugManagr {
     bugStatus: status,
     userId: number,
   ) {
-    await BugUtil.authorizeDeveloper(bugId, userId);
-    await BugUtil.validateBugStatus(bugStatus);
+    await BugUtil.validateUpdateBugStatus(bugId , userId , bugStatus)
     await bugHandler.updateBugStatus(bugStatus, bugId);
   }
 
@@ -72,7 +67,8 @@ export class BugManagr {
     bug: Partial<Bug>,
     userId: number,
   ) {
-    await BugUtil.validateBugReviewDetails(bugId, bug, userId);
+    await BugUtil.validateBugUserRelation(bugId, userId);
+    BugUtil.validateBugStatus(bug.status as status);
     await bugHandler.updateBugReview(bug, bugId);
   }
 
@@ -88,7 +84,6 @@ export class BugManagr {
       return null
     }
     await BugUtil.validateBugRequest(bug, bugId);
-    //}
     const updatedBug: IBugWithDeveloper | null = await bugHandler.updateBug(
       bug,
       imgurl,
@@ -98,23 +93,19 @@ export class BugManagr {
     return updatedBug;
   }
   static async deleteBug(bugId: number, sqaId: number) {
-    const bug = await bugHandler.getSQAbug(bugId, sqaId);
+    this.isValidBugId(bugId)
+    const bug = await bugHandler.getbugByID(bugId)
     if (!bug) {
       throw new Exception(
-        UserErrorMessages.ACCESS_DENIED,
-        errorCodes.BAD_REQUEST,
+        BugErrorMessages.BUG_NOT_FOUND,
+        errorCodes.DOCUMENT_NOT_FOUND
       );
     }
-
     await bugHandler.deleteBug(bugId);
   }
-  static async getBugState(
-    userId: number,
-    role: string,
-    projectId: number,
-  ): Promise<IBugState> {
-    await projectManager.validateProjectId(projectId);
-    const result = await bugHandler.getBugState(userId, role, projectId);
-    return result;
+  
+  static isValidBugId(bugId: number){
+    BugUtil.isValidBugId(bugId)
+    
   }
 }

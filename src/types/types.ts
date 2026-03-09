@@ -3,14 +3,14 @@ import { status } from "../models/bug.model";
 import { Bug } from "../models/bug.model";
 import { User } from "../models/users.model";
 
-  export interface ValidationError {
-    field: string;
-    message: string;
-  }
+export interface ValidationError {
+  field: string;
+  message: string;
+}
 export enum UserTypes {
   DEVELOPER = "developer",
   SQA = "sqa",
-  MANAGER = "manager"
+  MANAGER = "manager",
 }
 
 export interface createUser {
@@ -57,7 +57,7 @@ export interface project {
   sucess?: boolean;
   description?: string;
   image?: string | null;
-  imagePublicId?: string
+  imagePublicId?: string;
 }
 
 export interface IProjects {

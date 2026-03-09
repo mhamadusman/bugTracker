@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import {
   createBug,
   IBugs,
-  IBugState,
   IBugWithDeveloper,
 } from "../../types/types";
 import { BugManagr } from "./bugsManager";
@@ -12,6 +11,7 @@ import { projectManager } from "../projectController/projectManager";
 import { status } from "../../models/bug.model";
 import { UserErrorMessages } from "../../constants/userErrorMessag";
 export class BugController {
+  //done
   static async createBug(
     req: Request<{}, {}, createBug>,
     res: Response<IBugWithDeveloper | null>,
@@ -36,27 +36,7 @@ export class BugController {
       next(error);
     }
   }
-  static async getBugState(
-    req: Request,
-    res: Response<IBugState>,
-    next: NextFunction,
-  ) {
-    const role = String(req.user?.userType);
-    const userId = Number(req.user?.id);
-    const projectId = Number(req.query.projectId);
-    try {
-      const result = await BugManagr.getBugState(userId, role, projectId);
-      return res.status(successCodes.OK).json({
-        totalBugs: result.totalBugs,
-        pendingBugs: result.pendingBugs,
-        completedBugs: result.completedBugs,
-      });
-    } catch (error: unknown) {
-      console.log("error in getting bugs using status :: ", error);
-      next(error);
-    }
-  }
-
+  //done
   static async getAllBugs(
     req: Request,
     res: Response<IBugs>,
@@ -123,7 +103,7 @@ export class BugController {
     const bugId = Number(req.params.bugId);
     const userType = String(req.user?.userType);
     const userId = Number(req.user?.id);
-
+    BugManagr.isValidBugId(bugId)
     try {
       if (userType === "developer") {
         const status = req.body.status as status;
@@ -138,7 +118,6 @@ export class BugController {
           imgurl = req.file.path;
           imagePublicId = req.file.filename;
         }
-
         const updatedBug = await BugManagr.updateBug(
           req.body,
           imgurl,
@@ -172,6 +151,7 @@ export class BugController {
       });
     } catch (error) {
       console.log("error in deleting bug..", error);
+      next(error)
     }
   }
 }

@@ -65,20 +65,13 @@ export class bugHandler {
     const { developer, sqa, ...bug } = bugInstance.get({ plain: true });
     return { bug, developer, sqa };
   }
-  //remove it
   static async getSQAbug(bugId: number, sqaId: number): Promise<Bug | null> {
     const bug: Bug | null = await Bug.findOne({
       where: { bugId, sqaId },
     });
     return bug;
   }
-  //remove it
-  static async findBugs(projectId: number): Promise<Bug[]> {
-    const bugs = await Bug.findAll({
-      where: { projectId },
-    });
-    return bugs;
-  }
+  
   static async updateBugReview(bug: Partial<Bug>, bugId: number) {
     await Bug.update(
       { status: bug.status, isClose: bug.isClose },
@@ -105,24 +98,14 @@ export class bugHandler {
         console.log('old screenShoot deleted :: ' , response)
       }
     }
-    if (bug.title) {
-      data.title = bug.title;
-    }
-    if (bug.description) {
+      data.title = bug.title
       data.description = bug.description;
-    }
-    if (bug.deadline) {
       data.deadline = bug.deadline;
-    }
-    if (bug.developerId) {
       data.developerId = bug.developerId;
-    }
-    if (bug.type) {
       data.type = bug.type;
-    }
     if (bug.isClose !== undefined) {
       const isCloseBool =
-        typeof bug.isClose === "string" ? bug.isClose === "true" : bug.isClose;
+      typeof bug.isClose === "string" ? bug.isClose === "true" : bug.isClose;
       data.isClose = isCloseBool;
       data.status = isCloseBool ? "completed" : bug.status || "in progress";
     } else if (bug.status) {
@@ -131,40 +114,6 @@ export class bugHandler {
     await Bug.update(data, { where: { bugId } });
     const updateBug = await this.getSingleBug(bugId);
     return updateBug;
-  }
-  static async getBugState(
-    userId: number,
-    role: string,
-    projectId: number,
-  ): Promise<IBugState> {
-    const parameters: any = { projectId };
-    const include: any[] = [];
-    if (role === "manager") {
-      include.push({
-        model: Project,
-        as: "project",
-        where: { managerId: userId },
-        attributes: [],
-      });
-    } else if (role === "developer") {
-      parameters.developerId = userId;
-    } else if (role === "sqa") {
-      parameters.sqaId = userId;
-    }
-    const bugs = await Bug.findAll({
-      where: parameters,
-      include: include,
-    });
-    const totalBugs = bugs.length;
-    const completedBugs = bugs.filter(
-      (bug) => bug.status === "completed",
-    ).length;
-    const pendingBugs = totalBugs - completedBugs;
-    return {
-      totalBugs,
-      completedBugs,
-      pendingBugs,
-    };
   }
   static async deleteBug(bugId: number) {
     await Bug.destroy({

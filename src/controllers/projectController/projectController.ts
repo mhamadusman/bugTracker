@@ -44,16 +44,16 @@ export class ProjectController {
         Number(req.user?.id),
         String(req.user?.userType),
       );
-      // const allRecepient = await projectManager.getAllRecepientEmails(
-      //   sqaIds,
-      //   developerIds,
-      // );
-      // emailService.notifyNewProjectCreation(
-      //   allRecepient,
-      //   managerName,
-      //   name,
-      //   description,
-      // );
+      const allRecepient = await projectManager.getAllRecepientEmails(
+        sqaIds,
+        developerIds,
+      );
+      emailService.notifyNewProjectCreation(
+        allRecepient,
+        managerName,
+        name,
+        description,
+      );
 
       return res.status(errorCodes.CREATED).json({
         message: successMessages.MESSAGES.CREATED,
