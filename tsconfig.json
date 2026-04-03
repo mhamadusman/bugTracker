@@ -9,5 +9,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "src/jest.setup.ts", "**/*.test.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "src/tests", "**/*.test.ts", "src/jest.setup.ts"]
 }
