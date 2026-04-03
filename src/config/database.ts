@@ -1,13 +1,11 @@
 import { Sequelize } from "sequelize";
 import { errorMessages } from "../constants/errorMessages";
 import * as pg from "pg";
-
+import dotenv from "dotenv";
+dotenv.config()
 const inProduction = process.env.NODE_ENV === "production";
+const connectionSTR = process.env.DATABASE_URL;
 
-const connectionSTR =
-  process.env.NODE_ENV === "test"
-    ? process.env.TEST_DB
-    : process.env.DATABASE_URL;
 if (!connectionSTR) {
   throw new Error(errorMessages.MESSAGES.DB_CONNECTION_STRING_NOT_PRESENT);
 }

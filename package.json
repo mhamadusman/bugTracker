@@ -4,12 +4,10 @@
   "description": "",
   "main": "src/server.ts",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "dotenv -e .env.development -- nodemon src/server.ts",
+    "test": "dotenv -e .env.test -- jest --config src/config/jest.config.js",
     "build": "tsc",
-    "start": "node dist/server.js",
-    "preinstall": "npm config set legacy-peer-deps true",
-    "test": "jest --config src/config/jest.config.js",
-    "test:watch": "jest --watchAll"
+    "start": "node dist/server.js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +23,7 @@
   "homepage": "https://github.com/mhamadusman/bugTracker#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "cloudinary": "^2.9.0",
+    "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
@@ -55,6 +53,8 @@
     "@types/nodemailer": "^7.0.9",
     "@types/pg": "^8.16.0",
     "@types/supertest": "^7.2.0",
+    "cross-env": "^10.1.0",
+    "dotenv-cli": "^11.0.0",
     "jest": "^30.2.0",
     "nodemon": "^3.1.11",
     "sequelize-cli": "^6.6.5",

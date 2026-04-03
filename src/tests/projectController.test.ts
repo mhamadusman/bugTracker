@@ -8,7 +8,6 @@ import {
 import { successCodes } from "../constants/sucessCodes";
 import { errorCodes } from "../constants/errorCodes";
 import { successMessages } from "../constants/sucessMessages";
-import { status } from '../models/bug.model';
 
 describe("Project Controller", () => {
   let manager: any;

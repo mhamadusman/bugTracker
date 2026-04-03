@@ -12,7 +12,7 @@ import {
 import { userHandler } from "../handlers/userHandler";
 export class ProjectUils {
 
-  static async validateProjectData(
+  static async  validateProjectData(
     data: createProject,
     managerId?: number,
     projectId?: number,
